@@ -26,7 +26,6 @@ public abstract class PeacockPattern extends LXPattern {
 	}
 	
 	public static void randomizeParameter(DiscreteParameter parameter) {
-		
 		int newValue = (int) (Math.random() * ((float)(parameter.getRange()))+parameter.getMinValue());
 		parameter.setValue(newValue);
 	}
