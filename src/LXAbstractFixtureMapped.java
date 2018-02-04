@@ -18,22 +18,22 @@ import processing.core.PApplet;
 
 public class LXAbstractFixtureMapped extends LXAbstractFixture {
 
-	//Override this to return the points in order as they are on the physical strip
-	//The key value indexes are relative to the start of the fixture.  A parent fixture
-	//can modify keys but must keep the values the same as they are globally unique.
-	public AbstractMap<Integer, LXPoint> getPointsMapped()
-	{
-		final TreeMap<Integer, LXPoint> mappedPoints = new TreeMap<Integer, LXPoint>();
-		for (int i=0; i<this.points.size(); i++) {
-			mappedPoints.put(i, this.points.get(i));
-		}
-		PApplet.println("LXAbstractFixtureMapped.getPointsMapped()");
+    //Override this to return the points in order as they are on the physical strip
+    //The key value indexes are relative to the start of the fixture.  A parent fixture
+    //can modify keys but must keep the values the same as they are globally unique.
+    public AbstractMap<Integer, LXPoint> getPointsMapped()
+    {
+        final TreeMap<Integer, LXPoint> mappedPoints = new TreeMap<Integer, LXPoint>();
+        for (int i=0; i<this.points.size(); i++) {
+            mappedPoints.put(i, this.points.get(i));
+        }
+        PApplet.println("LXAbstractFixtureMapped.getPointsMapped()");
 
-		return mappedPoints;
-	}
-	
-	public LXPoint getPoint(int i) {
-		return this.points.get(i);
-	}
-	
+        return mappedPoints;
+    }
+
+    public LXPoint getPoint(int i) {
+        return this.points.get(i);
+    }
+
 }

@@ -13,30 +13,29 @@ import heronarts.lx.parameter.DiscreteParameter;
 
 public abstract class PeacockPattern extends LXPattern {
 
-	protected final PeacockModel model;
-	
-	public PeacockPattern(LX lx) {
-		super(lx);
-		this.model = (PeacockModel)lx.model;
-	}
+    protected final PeacockModel model;
 
-	public static void randomizeParameter(BoundedParameter parameter) {
-		float newValue = (float) ((Math.random()*(parameter.range.max-parameter.range.min))+parameter.range.min);
-		parameter.setValue(newValue);
-	}
-	
-	public static void randomizeParameter(DiscreteParameter parameter) {
-		
-		int newValue = (int) (Math.random() * ((float)(parameter.getRange()))+parameter.getMinValue());
-		parameter.setValue(newValue);
-	}
-	
-	public int getRandomColor() {
-		return this.getRandomColor(100);
-	}
-	
-	public int getRandomColor(float brightness) {
-		return LXColor.hsb(Math.random()*360, 100, brightness);
-	}
-	
+    public PeacockPattern(LX lx) {
+        super(lx);
+        this.model = (PeacockModel)lx.model;
+    }
+
+    public static void randomizeParameter(BoundedParameter parameter) {
+        float newValue = (float) ((Math.random()*(parameter.range.max-parameter.range.min))+parameter.range.min);
+        parameter.setValue(newValue);
+    }
+
+    public static void randomizeParameter(DiscreteParameter parameter) {
+        int newValue = (int) (Math.random() * ((float)(parameter.getRange()))+parameter.getMinValue());
+        parameter.setValue(newValue);
+    }
+
+    public int getRandomColor() {
+        return this.getRandomColor(100);
+    }
+
+    public int getRandomColor(float brightness) {
+        return LXColor.hsb(Math.random()*360, 100, brightness);
+    }
+
 }

@@ -8,20 +8,19 @@ import heronarts.lx.model.LXAbstractFixture;
 //A spiral either curves to the right or left.  Currently I expect we will choose a numbering system that will identify the curve direction and position.
 public class Spiral extends LXAbstractFixture {
 
-	public final int ID;
-	public final List<TailPixel> tailPixels;
-	
-	public Spiral(int id) {
-		this.ID = id;
-		this.tailPixels = new ArrayList<TailPixel>();
-	}
+    public final int ID;
+    public final List<TailPixel> tailPixels;
 
-	public Spiral addTailPixel(TailPixel tailPixel) {
-		
-		this.addPoint(tailPixel.p);
-		this.tailPixels.add(tailPixel);
-		
-		return this;
-	}
-	
+    public Spiral(int id) {
+        this.ID = id;
+        this.tailPixels = new ArrayList<TailPixel>();
+    }
+
+    public Spiral addTailPixel(TailPixel tailPixel) {
+        this.addPoint(tailPixel.p);
+        this.tailPixels.add(tailPixel);
+
+        return this;
+    }
+
 }
