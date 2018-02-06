@@ -64,24 +64,26 @@ public class PeacockModel extends LXModel {
         }
 
         //Tail Pixels
-        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/tailpixels.csv");
+        //List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/tailpixels.csv");
+        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/peacock-latest-edited.csv");
         for (TailPixelParameters p : tpP) {
             TailPixel newTailPixel = new TailPixel(p);
             tailPixels.add(newTailPixel);
 
             //Add to Controller
+            //System.out.printf("%d", p.controllerID);												
             controllersDict.get(p.controllerID).AddTailPixel(newTailPixel);
 
             //Create the containing spiral if it does not exist.
-            if (!spiralsDict.containsKey(p.spiralNum)) {
-                Spiral newSpiral = new Spiral(p.spiralNum);
+            if (!spiralsDict.containsKey(p.spiral)) {
+                Spiral newSpiral = new Spiral(p.spiral);
                 spirals.add(newSpiral);
-                spiralsDict.put(p.spiralNum, newSpiral);
+                spiralsDict.put(p.spiral, newSpiral);
             }
 
             //Add to Spiral
             //Spiral objects exist only for convenience in patterns.
-            spiralsDict.get(p.spiralNum).addTailPixel(newTailPixel);
+            spiralsDict.get(p.spiral).addTailPixel(newTailPixel);
         }
 
         //The highest level of fixture is pretty arbitrary for the Peacock.  Using Spirals works fine.
@@ -135,13 +137,18 @@ public class PeacockModel extends LXModel {
 
     private static CellProcessor[] getTailPixelCsvProcessors() {
         return new CellProcessor[] {
-            new ParseInt(),	// controllerID
-            new ParseInt(),	// controller Channel
-            new ParseInt(),	// spiral number
-            new ParseInt(),	// position (index in channel)
-            new ParseInt(),	// x
-            new ParseInt(),	// y
-            new ParseInt(),	// z
+            new ParseInt(), // int id;
+            new ParseDouble(), // float x;
+            new ParseDouble(), // float y;
+            new ParseDouble(), // float z;
+            new ParseInt(), // int address;
+            new ParseInt(), // int panel;
+            new ParseInt(), // int feather;
+            new ParseInt(), // int rung;
+            new ParseInt(), // int spiral;
+            new ParseInt(), // int controllerID;
+            new ParseInt(), // int controllerChannel;
+            new ParseInt(), // int position;
         };
     }
 
@@ -160,13 +167,19 @@ public class PeacockModel extends LXModel {
             Map<String, Object> c;
             while((c = mapReader.read(header, processors)) != null) {
                 TailPixelParameters p = new TailPixelParameters();
+
+                p.id = Integer.parseInt(c.get("id").toString());
+                p.x = Double.parseDouble(c.get("x").toString());
+                p.y = Double.parseDouble(c.get("y").toString());
+                p.z = Double.parseDouble(c.get("z").toString());
+                p.address = Integer.parseInt(c.get("address").toString());
+                p.panel = Integer.parseInt(c.get("panel").toString());
+                p.feather = Integer.parseInt(c.get("feather").toString());
+                p.rung = Integer.parseInt(c.get("rung").toString());
+                p.spiral = Integer.parseInt(c.get("spiral").toString());
                 p.controllerID = Integer.parseInt(c.get("controllerID").toString());
                 p.controllerChannel = Integer.parseInt(c.get("controllerChannel").toString());
-                p.spiralNum = Integer.parseInt(c.get("spiralNum").toString());
                 p.position = Integer.parseInt(c.get("position").toString());
-                p.x = Integer.parseInt(c.get("x").toString());
-                p.y = Integer.parseInt(c.get("y").toString());
-                p.z = Integer.parseInt(c.get("z").toString());
 
                 results.add(p);
             }

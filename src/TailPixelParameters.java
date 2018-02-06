@@ -1,10 +1,14 @@
-
 public class TailPixelParameters {
-    int x;
-    int y;
-    int z;
+    int id;
+    double x;
+    double y;
+    double z;
+    int address;
+    int panel;
+    int feather;
+    int rung;
+    int spiral;
     int controllerID;
     int controllerChannel;
     int position;
-    int spiralNum;
 }

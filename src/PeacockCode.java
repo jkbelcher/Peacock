@@ -119,7 +119,6 @@ public class PeacockCode extends PApplet {
                 // The UI is now ready, can add custom UI components if desired
                 ui.preview.addComponent(new UIWalls(model));
                 ui.leftPane.engine.setVisible(true);
-
             }
         };
 
@@ -133,6 +132,7 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+                .addPattern(new AudioPeacockPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
                 //	  	  		.addPattern(new VUMeter(lx))
                 .focusedPattern.setValue(1);
@@ -173,7 +173,6 @@ public class PeacockCode extends PApplet {
                     break;
             }
         }
-
     }
 
     void setHelpModeOn() {
@@ -187,10 +186,10 @@ public class PeacockCode extends PApplet {
 
     void setHelpModeOff() {
         /*
-        for (LEDScapeDatagram output : PeacockCode.datagrams) {
-            output.setBackgroundColor(LXColor.BLACK);
-        }
-        */
+           for (LEDScapeDatagram output : PeacockCode.datagrams) {
+           output.setBackgroundColor(LXColor.BLACK);
+           }
+           */
         this.isHelpMode = false;
         println("Help mode OFF");
     }
