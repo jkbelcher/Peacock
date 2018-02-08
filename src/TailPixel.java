@@ -13,8 +13,8 @@ public class TailPixel extends LXAbstractFixtureMapped {
 
         //Each LXPoint should be created only once.  We'll do it here, in the TailPixel constructor.
         LXPoint lxPoint = new LXPoint(params.x, params.y, params.z);
-
         this.p = lxPoint;
+        
         this.feather = this.params.feather;
     }
 

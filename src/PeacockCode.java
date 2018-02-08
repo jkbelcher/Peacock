@@ -126,12 +126,15 @@ public class PeacockCode extends PApplet {
         //lx.engine.output.mode.setValue(LXOutput.Mode.RAW);
         lx.engine.isNetworkMultithreaded.setValue(true);
         lx.engine.framesPerSecond.setValue(100);
+        
+        model.computeNormalsPeacock();
 
         if (!model.isInitialized) {
             model.isInitialized = true;
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+            	.addPattern(new DemoSpiralIDPattern(lx))
                 .addPattern(new AudioPeacockPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
                 //	  	  		.addPattern(new VUMeter(lx))

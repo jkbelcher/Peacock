@@ -22,6 +22,7 @@ public class BeagleboneController extends LXAbstractFixtureMapped {
     public void AddTailPixel(TailPixel tailPixel)
     {
         this.tailPixels.add(tailPixel);
+        this.addPoint(tailPixel.p);
     }
 
 
