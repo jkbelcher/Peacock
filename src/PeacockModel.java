@@ -194,6 +194,7 @@ public class PeacockModel extends LXModel {
         return new CellProcessor[] {
             new ParseInt(), // int controllerID;
             new ParseInt(), // int controllerChannel;
+            new ParseInt(), // int panel;
             new ParseInt(), // int spiral;
             new ParseInt(), // int position;
             new ParseInt(), // int feather;
@@ -221,6 +222,7 @@ public class PeacockModel extends LXModel {
 
                 p.controllerID = Integer.parseInt(c.get("controllerID").toString());
                 p.controllerChannel = Integer.parseInt(c.get("controllerChannel").toString());
+                p.panel = Integer.parseInt(c.get("panel").toString());
                 p.spiral = Integer.parseInt(c.get("spiralNum").toString());
                 p.position = Integer.parseInt(c.get("position").toString());
                 p.feather = Integer.parseInt(c.get("Feather").toString());
