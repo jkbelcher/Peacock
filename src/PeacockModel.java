@@ -118,7 +118,7 @@ public class PeacockModel extends LXModel {
 
         //Tail Pixels
         //List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/tailpixels.csv");
-        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/peacock-latest-edited.csv");
+        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/bestXandYsV3.csv");
         for (TailPixelParameters p : tpP) {
             TailPixel newTailPixel = new TailPixel(p);
             tailPixels.add(newTailPixel);
@@ -192,18 +192,14 @@ public class PeacockModel extends LXModel {
 
     private static CellProcessor[] getTailPixelCsvProcessors() {
         return new CellProcessor[] {
-            new ParseInt(), // int id;
-            new ParseDouble(), // float x;
-            new ParseDouble(), // float y;
-            new ParseDouble(), // float z;
-            new ParseInt(), // int address;
-            new ParseInt(), // int panel;
-            new ParseInt(), // int feather;
-            new ParseInt(), // int rung;
-            new ParseInt(), // int spiral;
             new ParseInt(), // int controllerID;
             new ParseInt(), // int controllerChannel;
+            new ParseInt(), // int spiral;
             new ParseInt(), // int position;
+            new ParseInt(), // int feather;
+            new ParseInt(), // int rung;
+            new ParseDouble(), // float x;
+            new ParseDouble(), // float y;
         };
     }
 
@@ -223,18 +219,14 @@ public class PeacockModel extends LXModel {
             while((c = mapReader.read(header, processors)) != null) {
                 TailPixelParameters p = new TailPixelParameters();
 
-                p.id = Integer.parseInt(c.get("id").toString());
-                p.x = Double.parseDouble(c.get("x").toString());
-                p.y = Double.parseDouble(c.get("y").toString());
-                p.z = Double.parseDouble(c.get("z").toString());
-                p.address = Integer.parseInt(c.get("address").toString());
-                p.panel = Integer.parseInt(c.get("panel").toString());
-                p.feather = Integer.parseInt(c.get("feather").toString());
-                p.rung = Integer.parseInt(c.get("rung").toString());
-                p.spiral = Integer.parseInt(c.get("spiral").toString());
                 p.controllerID = Integer.parseInt(c.get("controllerID").toString());
                 p.controllerChannel = Integer.parseInt(c.get("controllerChannel").toString());
+                p.spiral = Integer.parseInt(c.get("spiralNum").toString());
                 p.position = Integer.parseInt(c.get("position").toString());
+                p.feather = Integer.parseInt(c.get("Feather").toString());
+                p.rung = Integer.parseInt(c.get("Rung").toString());
+                p.x = Double.parseDouble(c.get("X in Inches").toString());
+                p.y = Double.parseDouble(c.get("Y in Inches").toString());
 
                 results.add(p);
             }
