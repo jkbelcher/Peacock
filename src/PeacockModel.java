@@ -27,10 +27,8 @@ import heronarts.lx.transform.LXTransform;
  */
 public class PeacockModel extends LXModel {
 
-	//Hardware components
-    public final List<BeagleboneController> controllers;
-    
-    //Tail Pixels
+    public final List<PeacockFixture> allPeacockFixtures;
+    public final List<PeacockController> controllers;
     public final List<TailPixel> tailPixels;
     
     //Sub-collections of tail pixels
@@ -54,16 +52,22 @@ public class PeacockModel extends LXModel {
     
     //Do normalized each direction overall spiral
     
-    //Eye pixels
-    //TO-DO: Add eye pixels here.  They will load from a different .csv file    
+    //Head Eye pixels
+    //TO-DO: Add [head] eye pixels here.  They will load from a different .csv file    
        
     public Boolean isInitialized=false;
 
-    public PeacockModel(LXFixture[] allFixtures, List<BeagleboneController> controllers, List<TailPixel> tailPixels) {
+    public PeacockModel(LXFixture[] allFixtures, List<PeacockFixture> allPeacockFixtures, List<PeacockController> controllers, List<TailPixel> tailPixels) {
         super(allFixtures);
 
+        this.allPeacockFixtures = allPeacockFixtures;
         this.controllers = controllers;
         this.tailPixels = tailPixels;
+        
+        //Sort TailPixels within each collection
+        for (PeacockFixture fixture : this.allPeacockFixtures) {
+            fixture.setLoaded();
+        }
         
         this.eyePixels = new ArrayList<TailPixel>();
         this.panelPixels = new ArrayList<TailPixel>();
@@ -101,50 +105,48 @@ public class PeacockModel extends LXModel {
 
     public static PeacockModel LoadConfigurationFromFile() throws Exception
     {
-        final List<BeagleboneController> controllers = new ArrayList<BeagleboneController>();
+        final List<PeacockFixture> allPeacockFixtures = new ArrayList<PeacockFixture>();
+        final List<PeacockController> controllers = new ArrayList<PeacockController>();
         final List<TailPixel> tailPixels = new ArrayList<TailPixel>();
-        //final List<TailPixelGroup> spirals = new ArrayList<TailPixelGroup>();
 
-        final TreeMap<Integer,BeagleboneController> controllersDict = new TreeMap<Integer,BeagleboneController>();
-        //final HashMap<Integer,Spiral> spiralsDict = new HashMap<Integer,Spiral>();
+        //We use dictionaries to pair objects during the loading process
+        final TreeMap<Integer,PeacockController> controllersDict = new TreeMap<Integer,PeacockController>();
 
         //Controllers
         List<ControllerParameters> cP = ReadControllersFromFile("./config/controllers.csv");
         for (ControllerParameters p : cP) {
-            BeagleboneController newController = new BeagleboneController(p);
+            PeacockController newController = new PeacockController(p);
             controllers.add(newController);
             controllersDict.put(p.id, newController);
         }
 
         //Tail Pixels
-        //List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/tailpixels.csv");
         List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/bestXandYsV3.csv");
         for (TailPixelParameters p : tpP) {
             TailPixel newTailPixel = new TailPixel(p);
             tailPixels.add(newTailPixel);
 
-            //Add to Controller
-            //System.out.printf("%d", p.controllerID);												
-            controllersDict.get(p.controllerID).AddTailPixel(newTailPixel);
+            PeacockController controller = controllersDict.get(p.controllerID);
 
-            /*
-            //Create the containing spiral if it does not exist.
-            if (!spiralsDict.containsKey(p.spiral)) {
-                Spiral newSpiral = new Spiral(p.spiral);
-                spirals.add(newSpiral);
-                spiralsDict.put(p.spiral, newSpiral);
+            //Create the containing fixture if it does not exist.
+            PeacockFixture fixture;
+            if (!controller.containsFixture(p.controllerChannel)) {
+                fixture = new PeacockFixture(p.controllerChannel, controller);
+                controller.addFixture(fixture);
+                allPeacockFixtures.add(fixture);
+            } else {
+                fixture = controller.getFixture(p.controllerChannel);
             }
 
-            //Add to Spiral
-            //Spiral objects exist only for convenience in patterns.
-            spiralsDict.get(p.spiral).addTailPixel(newTailPixel);
-            */
+            //Add pixel to containing fixture.
+            //This subsequently calls the important model loading method LXAbstractFixture.addPoint(LXPoint)
+            fixture.AddTailPixel(newTailPixel);
         }
 
-        //The highest level of fixture is pretty arbitrary for the Peacock.  Using Spirals works fine.
-        List<LXFixture> _fixtures = new ArrayList<LXFixture>(controllers);
+        //LX wants a list of fixtures that as a whole contains one instance of each LXPoint.
+        List<LXFixture> _fixtures = new ArrayList<LXFixture>(allPeacockFixtures);
 
-        return new PeacockModel(_fixtures.toArray(new LXFixture[_fixtures.size()]), controllers, tailPixels);
+        return new PeacockModel(_fixtures.toArray(new LXFixture[_fixtures.size()]), allPeacockFixtures, controllers, tailPixels);
     }
 
     private static CellProcessor[] getControllerCsvProcessors() {

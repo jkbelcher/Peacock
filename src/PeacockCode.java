@@ -5,6 +5,7 @@ import java.util.List;
 
 import heronarts.lx.color.LXColor;
 import heronarts.lx.output.LXDatagramOutput;
+import heronarts.lx.output.StreamingACNDatagram;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
@@ -23,7 +24,7 @@ public class PeacockCode extends PApplet {
 
     //For "help" mode which helps define mapped/unmapped pixels
     private boolean isHelpMode = false;
-    //public static final List<LEDScapeDatagram> datagrams = new ArrayList<LEDScapeDatagram>();
+    public static final List<StreamingACNDatagram2> datagrams = new ArrayList<StreamingACNDatagram2>();
 
     public static void main(String[] args) {
         //		PApplet.main("PeacockCode");
@@ -77,41 +78,36 @@ public class PeacockCode extends PApplet {
 
                 //Cast the model to access model-specific properties from within this overridden initialize() function.
                 PeacockModel m = (PeacockModel)model;
+                
+                try {
+                    //Create a UDP datagram for each output universe.
+                    //Currently these are 1:1 with controller channels.
+                    for (PeacockFixture fixture : m.allPeacockFixtures) {
+                        int universe = fixture.channel;
+                        if (universe > 0) {
+                            int[] indicesForDatagram = fixture.getPointIndicesForOutput();                   
+                            StreamingACNDatagram2 datagram = (StreamingACNDatagram2) new StreamingACNDatagram2(universe, indicesForDatagram)
+                                .setAddress(fixture.controller.params.ipAddress)
+                                .setPort(fixture.controller.params.port);
+                            datagrams.add(datagram);
+                        }
+                    }    
 
-                /* Justin's note: commenting this out until we choose a controller.
-                   try {
-                //Foreach controller
-
-                for (BeagleboneController controller : m.controllers) {
-                LEDScapeDatagram datagram;
-                datagram = (LEDScapeDatagram) new LEDScapeDatagram(controller.params.numberOfChannels, controller.params.LEDsPerChannel, controller)
-                .setAddress(controller.params.ipAddress)
-                .setPort(controller.params.port);
-                PeacockCode.datagrams.add(datagram);
-                }
-
-
-                //Example for TCP output.  We use UDP on Joule.
-                //LEDScapeOutput output = new LEDScapeOutput(lx, "192.168.111.211", 7890, controller.params.numberOfChannels, controller.params.LEDsPerChannel, controller);
-
-                //Create a UDP LXDatagramOutput to own these packets
-                LXDatagramOutput output = new LXDatagramOutput(lx);
-                for (LEDScapeDatagram dg : datagrams) {
-                output.addDatagram(dg);
-                }
-
-
-                //this.addOutput(output);		//Comment out for development
-
+                    //Create a UDP LXDatagramOutput to own these packets
+                    LXDatagramOutput output = new LXDatagramOutput(lx);
+                    for (StreamingACNDatagram2 dg : datagrams) {
+                        output.addDatagram(dg);
+                    }
+                    
+                    this.addOutput(output);		//Comment out for development
+                    
                 } catch (UnknownHostException e) {
-                println("Unknown Host Exception while constructing UDP output: " + e);
-                e.printStackTrace();
+                    println("Unknown Host Exception while constructing UDP output: " + e);
+                    e.printStackTrace();
                 } catch (SocketException e) {
-                println("Socket Exception while constructing UDP output: " + e);
-                e.printStackTrace();
+                    println("Socket Exception while constructing UDP output: " + e);
+                    e.printStackTrace();
                 }
-
-*/
             }
 
             @Override
@@ -134,10 +130,10 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+                .addPattern(new DemoChannelPattern(lx))
+                .addPattern(new SolidColorPeacockPattern(lx))
             	.addPattern(new DemoSpiralIDPattern(lx))
                 .addPattern(new AudioPeacockPattern(lx))
-                .addPattern(new SolidColorPeacockPattern(lx))
-                //	  	  		.addPattern(new VUMeter(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
 
