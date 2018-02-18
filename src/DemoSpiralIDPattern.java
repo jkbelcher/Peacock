@@ -32,8 +32,9 @@ public class DemoSpiralIDPattern extends PeacockPattern {
     
 	@Override
 	protected void run(double arg0) {
-		this.clearColors();
-
+		//this.clearColors();
+	    this.setColors(LXColor.RED);
+	    
 		//Get the current value of the parameter
 		int spiralID = this.spiralID.getValuei();
 		int position = this.position.getValuei();

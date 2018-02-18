@@ -2,6 +2,7 @@ import java.io.FileReader;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,25 +28,28 @@ import heronarts.lx.transform.LXTransform;
  */
 public class PeacockModel extends LXModel {
 
-    public final List<PeacockFixture> allPeacockFixtures;
+    public final List<PeacockFixture> allPeacockFixtures;   //One fixture for each controller channel.  Panels and Feathers are fixtures.
+    
     public final List<PeacockController> controllers;
     public final List<TailPixel> tailPixels;
     
     //Sub-collections of tail pixels
-    public final List<TailPixel> eyePixels;
-    public final List<TailPixel> panelPixels;
+    //public final List<TailPixel> eyePixels;
+    //public final List<TailPixel> panelPixels;
 
     //Logical groupings of tail pixels
     //Use these maps to find specific components by ID
-    public final AbstractMap<Integer, TailPixelGroup> spirals;		//*Probably can change this from map to list and just create them in order
-    public final AbstractMap<Integer, TailPixelGroup> feathers;
-    public final AbstractMap<Integer, TailPixelGroup> panels;
+    //public final AbstractMap<Integer, TailPixelGroup> spirals;		//*Probably can change this from map to list and just create them in order
+    public final List<TailPixelGroup> feathers;
+    public final List<TailPixelGroup> panels;
     
     //Normalized mappings
     //There are a bunch of different ways to group/order the spirals.
     //Use these objects to conveniently address pixels in a particular order, using a normalized 0..1 range.
     //Each group contains a list of pairs of [Tailpixel] + [normalized position within the group]
-    public final TailPixelGroup spiralsLR;
+    public final TailPixelGroup feathersLR;
+    
+    //public final TailPixelGroup spiralsLR;
     //public final TailPixelGroup spiralsRL;
     //public final TailPixelGroup spiralsLOnly;
     //public final TailPixelGroup spiralsROnly;
@@ -69,26 +73,40 @@ public class PeacockModel extends LXModel {
             fixture.setLoaded();
         }
         
-        this.eyePixels = new ArrayList<TailPixel>();
-        this.panelPixels = new ArrayList<TailPixel>();
-        this.spirals = new TreeMap<Integer, TailPixelGroup>();
-        this.feathers = new TreeMap<Integer, TailPixelGroup>();
-        this.panels = new TreeMap<Integer, TailPixelGroup>();        
-        this.spiralsLR = new TailPixelGroup();
+        //this.eyePixels = new ArrayList<TailPixel>();
+        //this.panelPixels = new ArrayList<TailPixel>();
+        //this.spirals = new TreeMap<Integer, TailPixelGroup>();
+        this.feathers = new ArrayList<TailPixelGroup>();
+        this.panels = new ArrayList<TailPixelGroup>();
+        
+        this.feathersLR = new TailPixelGroup();
         
         this.initializeSubCollections();
     }
     
-    private void initializeSubCollections() {    	
-    	//Spirals (numbered from the original circular layout)
-    	for (TailPixel p : this.tailPixels) {
+    private void initializeSubCollections() {             	
+    	//FeathersLR
+        for (TailPixel p : this.tailPixels) {
+            if (p.isFeatherPixel()) {                
+                this.feathersLR.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        //Sort by feather, then by position
+        this.feathersLR.tailPixels.sort((p1,p2) -> p1.pixel.params.feather == p2.pixel.params.feather ? p2.pixel.params.position - p1.pixel.params.position : p1.pixel.params.feather - p2.pixel.params.feather);
+        this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
+        
+        /*
+        //Spirals (numbered from the original circular layout)
+        for (TailPixel p : this.tailPixels) {
             //Create the containing spiral if it does not exist.
             if (!spirals.containsKey(p.params.spiral)) {
-            	TailPixelGroup newGroup = new TailPixelGroup();
+                TailPixelGroup newGroup = new TailPixelGroup();
                 newGroup.addTailPixelPosition(new TailPixelPos(p));
                 spirals.put(p.params.spiral, newGroup);
             }
-        }    	
+        }
+        */
+
     }
     
     protected PeacockModel computeNormalsPeacock() {

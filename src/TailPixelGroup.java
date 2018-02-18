@@ -17,8 +17,14 @@ public class TailPixelGroup extends LXAbstractFixture {
 		return this;
 	}
 	
-	public TailPixelGroup calculateNormalsByIndex()
-	{
+	public TailPixelGroup copyIndicesToChildren() {
+	    for (int i = 0; i<this.tailPixels.size(); i++) {
+	        this.tailPixels.get(i).setIndex(i);
+	    }
+	    return this;
+	}	
+	
+	public TailPixelGroup calculateNormalsByIndex()	{
 		//Once all children have been added to the group,
 		//calculate the normalized positions of children based on index
 		

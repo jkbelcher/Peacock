@@ -52,7 +52,7 @@ public class PeacockCode extends PApplet {
             model = PeacockModel.LoadConfigurationFromFile();
             PApplet.println("Loaded"
                     ,model.controllers.size() + " controllers,"
-                    ,model.spirals.size() + " spirals,"
+                    ,model.allPeacockFixtures.size() + " fixtures,"
                     ,model.tailPixels.size() + " tailPixels,"
                     ,"and " + model.points.length + " total pixels.");
         } catch (Exception e) {
@@ -130,6 +130,7 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+                .addPattern(new DemoNormalFeathersLRPattern(lx))
                 .addPattern(new DemoChannelPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
             	.addPattern(new DemoSpiralIDPattern(lx))
