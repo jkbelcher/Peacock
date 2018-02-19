@@ -129,11 +129,12 @@ public class PeacockCode extends PApplet {
             model.isInitialized = true;
 
             //For development, initialize to desired pattern.
-            lx.engine.getChannel(0)
+            lx.engine.getChannel(0)            
+                .addPattern(new DemoNormalPanelsLRPattern(lx))
                 .addPattern(new DemoNormalFeathersLRPattern(lx))
                 .addPattern(new DemoChannelPattern(lx))
+                .addPattern(new DemoSpiralIDPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
-            	.addPattern(new DemoSpiralIDPattern(lx))
                 .addPattern(new AudioPeacockPattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();

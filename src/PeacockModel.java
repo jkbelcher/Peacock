@@ -48,6 +48,7 @@ public class PeacockModel extends LXModel {
     //Use these objects to conveniently address pixels in a particular order, using a normalized 0..1 range.
     //Each group contains a list of pairs of [Tailpixel] + [normalized position within the group]
     public final TailPixelGroup feathersLR;
+    public final TailPixelGroup panelsLR;
     
     //public final TailPixelGroup spiralsLR;
     //public final TailPixelGroup spiralsRL;
@@ -80,6 +81,7 @@ public class PeacockModel extends LXModel {
         this.panels = new ArrayList<TailPixelGroup>();
         
         this.feathersLR = new TailPixelGroup();
+        this.panelsLR = new TailPixelGroup();
         
         this.initializeSubCollections();
     }
@@ -91,9 +93,13 @@ public class PeacockModel extends LXModel {
                 this.feathersLR.addTailPixelPosition(new TailPixelPos(p));
             }
         }
-        //Sort by feather, then by position
-        this.feathersLR.tailPixels.sort((p1,p2) -> p1.pixel.params.feather == p2.pixel.params.feather ? p2.pixel.params.position - p1.pixel.params.position : p1.pixel.params.feather - p2.pixel.params.feather);
-        this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
+        
+        //PanelsLR
+        for (TailPixel p : this.tailPixels) {
+            if (p.isPanelPixel()) {                
+                this.panelsLR.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
         
         /*
         //Spirals (numbered from the original circular layout)
@@ -106,11 +112,18 @@ public class PeacockModel extends LXModel {
             }
         }
         */
-
     }
     
     protected PeacockModel computeNormalsPeacock() {
-    	//TO-DO
+        //Positions are computed here, after the model is built and calculateNormals() has been called on it.
+        //This is in case a collection wants to sort itself using a normalized value.
+        
+        //Sort by feather, then by position
+        this.feathersLR.tailPixels.sort((p1,p2) -> p1.pixel.params.feather == p2.pixel.params.feather ? p2.pixel.params.position - p1.pixel.params.position : p1.pixel.params.feather - p2.pixel.params.feather);
+        this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
+
+        this.panelsLR.tailPixels.sort((p1,p2) -> p1.pixel.params.panel == p2.pixel.params.panel ? Float.compare(p1.pixel.p.r, p2.pixel.p.r) : p1.pixel.params.panel - p2.pixel.params.panel);
+        this.panelsLR.copyIndicesToChildren().calculateNormalsByIndex();
     	
     	return this;
     }
