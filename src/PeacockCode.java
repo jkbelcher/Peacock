@@ -2,21 +2,27 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 import heronarts.lx.color.LXColor;
+import heronarts.lx.osc.LXOscListener;
+import heronarts.lx.osc.OscMessage;
 import heronarts.lx.output.LXDatagramOutput;
 import heronarts.lx.output.StreamingACNDatagram;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 
-public class PeacockCode extends PApplet {
+public class PeacockCode extends PApplet implements LXOscListener {
 
     // Base unit is inches
     public final static float INCHES = 1;
     public final static float FEET = 12*INCHES;
 
     public static PeacockCode applet;
+
+    // For mapping pattern names to indexes.
+    HashMap<String, Integer> PatternNameToIndex = new HashMap<>();
 
     // Top-level, we have a model and an LXStudio instance
     PeacockModel model;
@@ -42,6 +48,14 @@ public class PeacockCode extends PApplet {
 
     public void setup(){
         PeacockCode.applet = this;
+
+        // Patterns on channel 0
+        PatternNameToIndex.put("panel"   , 1);
+        PatternNameToIndex.put("feather" , 2);
+        PatternNameToIndex.put("channel" , 3);
+        PatternNameToIndex.put("spiral"  , 4);
+        PatternNameToIndex.put("solid"   , 5);
+        PatternNameToIndex.put("audio"   , 6);
 
         //Monitor key events for Ctrl+Q = Quit, Ctrl+H = Help, etc.
         registerMethod("keyEvent", this);
@@ -156,6 +170,12 @@ public class PeacockCode extends PApplet {
 
             lx.engine.audio.enabled.setValue(true);
             lx.engine.audio.meter.gain.setValue(18);
+            try {
+                lx.engine.osc.receiver(8000).addListener(this);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -207,6 +227,39 @@ public class PeacockCode extends PApplet {
            */
         this.isHelpMode = false;
         println("Help mode OFF");
+    }
+
+    @Override
+    public void oscMessage(OscMessage arg0) {
+        String[] oscAddressArray = arg0.getAddressPattern().toString().split("/");
+        // PApplet.println(oscAddressArray);
+        // PApplet.println(arg0);
+        String patternName = oscAddressArray[1];
+        int patternIndex = PatternNameToIndex.get(patternName);
+
+        if (oscAddressArray.length > 2) {
+            String patternParam = oscAddressArray[2];
+            // PApplet.println(patternParam);
+
+            // Parse to integers where needed (can't send ints with osc)
+            if (patternName.equals("channel") || patternName.equals("spiral")) {
+                lx.engine.getChannel(0)
+                    .getPattern(patternIndex)
+                    .getParameter(patternParam)
+                    .setValue(arg0.getInt(0));
+            } else {
+                lx.engine.getChannel(0)
+                    .getPattern(patternIndex)
+                    .getParameter(patternParam)
+                    .setValue(arg0.getDouble(0));
+            }
+        } else {
+            lx.engine.getChannel(0)
+                .goIndex(patternIndex);
+            lx.engine.getChannel(0)
+                .focusedPattern
+                .setValue(patternIndex);
+        }
     }
 
 }
