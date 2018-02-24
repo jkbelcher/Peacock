@@ -6,6 +6,7 @@ public class TailPixel extends LXAbstractFixtureMapped implements Comparable<Tai
     public final TailPixelParameters params;
     public final LXPoint p;
     public final int feather;
+    public final int panel;
 
     public TailPixel(TailPixelParameters params) {
         this.params = params;
@@ -16,6 +17,7 @@ public class TailPixel extends LXAbstractFixtureMapped implements Comparable<Tai
         this.p = lxPoint;
         
         this.feather = this.params.feather;
+        this.panel = this.params.panel;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class TailPixel extends LXAbstractFixtureMapped implements Comparable<Tai
     }
     
     public Boolean isPanelPixel() {
-        return this.params.panel > 0;
+        return this.panel > 0;
     }
 
 }

@@ -33,13 +33,8 @@ public class PeacockModel extends LXModel {
     public final List<PeacockController> controllers;
     public final List<TailPixel> tailPixels;
     
-    //Sub-collections of tail pixels
-    //public final List<TailPixel> eyePixels;
-    //public final List<TailPixel> panelPixels;
-
     //Logical groupings of tail pixels
     //Use these maps to find specific components by ID
-    //public final AbstractMap<Integer, TailPixelGroup> spirals;		//*Probably can change this from map to list and just create them in order
     public final List<TailPixelGroup> feathers;
     public final List<TailPixelGroup> panels;
     
@@ -86,7 +81,27 @@ public class PeacockModel extends LXModel {
         this.initializeSubCollections();
     }
     
-    private void initializeSubCollections() {             	
+    private void initializeSubCollections() {
+        //Feathers
+        for (int i = 1; i <= 13; i++) {
+            this.feathers.add(new TailPixelGroup(i));            
+        }
+        for (TailPixel p : this.tailPixels) {
+            if (p.isFeatherPixel()) {
+                this.feathers.get(p.feather-1).addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        
+        //Panels
+        for (int i = 1; i <= 12; i++) {
+            this.panels.add(new TailPixelGroup(i));            
+        }
+        for (TailPixel p : this.tailPixels) {
+            if (p.isPanelPixel()) {
+                this.panels.get(p.panel-1).addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+                
     	//FeathersLR
         for (TailPixel p : this.tailPixels) {
             if (p.isFeatherPixel()) {                
@@ -117,7 +132,19 @@ public class PeacockModel extends LXModel {
     protected PeacockModel computeNormalsPeacock() {
         //Positions are computed here, after the model is built and calculateNormals() has been called on it.
         //This is in case a collection wants to sort itself using a normalized value.
+
+        //Feathers
+        for (TailPixelGroup g : this.feathers) {
+            g.tailPixels.sort((p1,p2) -> Float.compare(p1.getPoint().r, p2.getPoint().r));
+            g.copyIndicesToChildren().calculateNormalsByIndex();
+        }
         
+        //Panels
+        for (TailPixelGroup g : this.panels) {
+            g.tailPixels.sort((p1,p2) -> Float.compare(p1.getPoint().r, p2.getPoint().r));
+            g.copyIndicesToChildren().calculateNormalsByIndex();
+        }
+
         //Sort by feather, then by position
         this.feathersLR.tailPixels.sort((p1,p2) -> p1.getFeather() == p2.getFeather() ? p2.getPosition() - p1.getPosition() : p1.getFeather() - p2.getFeather());
         this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
