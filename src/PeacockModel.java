@@ -119,10 +119,10 @@ public class PeacockModel extends LXModel {
         //This is in case a collection wants to sort itself using a normalized value.
         
         //Sort by feather, then by position
-        this.feathersLR.tailPixels.sort((p1,p2) -> p1.pixel.params.feather == p2.pixel.params.feather ? p2.pixel.params.position - p1.pixel.params.position : p1.pixel.params.feather - p2.pixel.params.feather);
+        this.feathersLR.tailPixels.sort((p1,p2) -> p1.getFeather() == p2.getFeather() ? p2.getPosition() - p1.getPosition() : p1.getFeather() - p2.getFeather());
         this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
 
-        this.panelsLR.tailPixels.sort((p1,p2) -> p1.pixel.params.panel == p2.pixel.params.panel ? Float.compare(p1.pixel.p.r, p2.pixel.p.r) : p1.pixel.params.panel - p2.pixel.params.panel);
+        this.panelsLR.tailPixels.sort((p1,p2) -> p1.getPanel() == p2.getPanel() ? Float.compare(p1.getPoint().r, p2.getPoint().r) : p1.getPanel() - p2.getPanel());
         this.panelsLR.copyIndicesToChildren().calculateNormalsByIndex();
     	
     	return this;

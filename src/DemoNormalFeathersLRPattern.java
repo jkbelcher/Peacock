@@ -30,9 +30,9 @@ public class DemoNormalFeathersLRPattern extends PeacockPattern {
         
         //Loop over normalized collection and light pixels that are close to the position
         for (TailPixelPos tpp : model.feathersLR.tailPixels) {
-            if (tpp.n > position - width && tpp.n < position + width) {
-                float brightness = (width - Math.abs(position-tpp.n)) / width;
-                colors[tpp.pixel.p.index] = LXColor.scaleBrightness(LXColor.WHITE, brightness);
+            if (tpp.getN() > position - width && tpp.getN() < position + width) {
+                float brightness = (width - Math.abs(position-tpp.getN())) / width;
+                colors[tpp.getIndexColor()] = LXColor.scaleBrightness(LXColor.WHITE, brightness);
             }
         }
     }

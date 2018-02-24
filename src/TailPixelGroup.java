@@ -6,20 +6,26 @@ import heronarts.lx.model.LXAbstractFixture;
 public class TailPixelGroup extends LXAbstractFixture {
 
 	public final List<TailPixelPos> tailPixels;
+	public int id = 0;
 	
 	public TailPixelGroup() {
-		tailPixels = new ArrayList<TailPixelPos>();
+	    this(0);
 	}
-	
+
+	public TailPixelGroup(int id) {
+	    this.id=id;
+	    tailPixels = new ArrayList<TailPixelPos>();
+    }
+
 	public TailPixelGroup addTailPixelPosition(TailPixelPos newItem) {
 		this.tailPixels.add(newItem);
-		this.addPoint(newItem.pixel.p);
+		this.addPoint(newItem.getPoint());
 		return this;
 	}
 	
 	public TailPixelGroup copyIndicesToChildren() {
 	    for (int i = 0; i<this.tailPixels.size(); i++) {
-	        this.tailPixels.get(i).setIndex(i);
+	        this.tailPixels.get(i).setIndexGroup(i);
 	    }
 	    return this;
 	}	
@@ -38,7 +44,7 @@ public class TailPixelGroup extends LXAbstractFixture {
 		float numPixels = (float)this.tailPixels.size();
 		
 		for (TailPixelPos item : this.tailPixels) {
-			item.setNormal(((float)(item.index+1))/numPixels);			
+			item.setNormal(((float)(item.getIndexGroup()+1))/numPixels);			
 		}		
 		
 		return this;
