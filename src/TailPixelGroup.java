@@ -50,4 +50,7 @@ public class TailPixelGroup extends LXAbstractFixture {
 		return this;
 	}
 
+	public int size() {
+	    return this.tailPixels.size();
+	}
 }

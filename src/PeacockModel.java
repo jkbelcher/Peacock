@@ -39,13 +39,8 @@ public class PeacockModel extends LXModel {
     public final TailPixelGroup feathersLR;
     public final TailPixelGroup panelsLR;
     public final TailPixelGroup spiralsCW_IO;
-    
-    //public final TailPixelGroup spiralsLR;
-    //public final TailPixelGroup spiralsRL;
-    //public final TailPixelGroup spiralsLOnly;
-    //public final TailPixelGroup spiralsROnly;
-    
-    //Do normalized each direction overall spiral
+    public final TailPixelGroup spiralsCCW_IO;        
+    //TO-DO: normalized each direction overall spiral
     
     //Head Eye pixels
     //TO-DO: Add [head] eye pixels here.  They will load from a different .csv file    
@@ -72,6 +67,7 @@ public class PeacockModel extends LXModel {
         this.feathersLR = new TailPixelGroup();
         this.panelsLR = new TailPixelGroup();
         this.spiralsCW_IO = new TailPixelGroup();
+        this.spiralsCCW_IO = new TailPixelGroup();
         
         this.initializeSubCollections();
     }
@@ -111,25 +107,20 @@ public class PeacockModel extends LXModel {
             }
         }
         
-        //SpiralsCW_OI = Spirals, Clockwise, Outside->Inside
+        //SpiralsCW_IO = Spirals, Clockwise, Inside->Outside
         for (TailPixel p : this.tailPixels) {
             if (p.isPanelPixel() && p.params.spiral % 2 == 0) {                
                 this.spiralsCW_IO.addTailPixelPosition(new TailPixelPos(p));
             }
         }
         
-        
-        /*
-        //Spirals (numbered from the original circular layout)
+        //SpiralsCCW_IO = Spirals, Counter-Clockwise, Inside->Outside
         for (TailPixel p : this.tailPixels) {
-            //Create the containing spiral if it does not exist.
-            if (!spirals.containsKey(p.params.spiral)) {
-                TailPixelGroup newGroup = new TailPixelGroup();
-                newGroup.addTailPixelPosition(new TailPixelPos(p));
-                spirals.put(p.params.spiral, newGroup);
+            if (p.isPanelPixel() && p.params.spiral % 2 != 0) {                
+                this.spiralsCCW_IO.addTailPixelPosition(new TailPixelPos(p));
             }
-        }
-        */
+        }        
+
     }
     
     protected PeacockModel computeNormalsPeacock() {
@@ -157,7 +148,10 @@ public class PeacockModel extends LXModel {
         
         this.spiralsCW_IO.tailPixels.sort((p1,p2) -> p1.getSpiral() == p2.getSpiral() ? p2.getPosition() - p1.getPosition() : p2.getSpiral() - p1.getSpiral());
         this.spiralsCW_IO.copyIndicesToChildren().calculateNormalsByIndex();    //*Could do normals by position and not by spiral.
-    	
+
+        this.spiralsCCW_IO.tailPixels.sort((p1,p2) -> p1.getSpiral() == p2.getSpiral() ? p2.getPosition() - p1.getPosition() : p2.getSpiral() - p1.getSpiral());
+        this.spiralsCCW_IO.copyIndicesToChildren().calculateNormalsByIndex();
+
     	return this;
     }
 

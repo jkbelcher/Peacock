@@ -21,8 +21,7 @@ public class DemoNormalCollectionPattern extends PeacockPattern {
     public final CompoundParameter width = 
             new CompoundParameter("Width", .015, 0.01, 1)
             .setDescription("Width of the lit pixels, normalized");    
-    
-    
+        
     public DemoNormalCollectionPattern(LX lx) {
         super(lx);
         
@@ -30,9 +29,6 @@ public class DemoNormalCollectionPattern extends PeacockPattern {
         this.modelN.setTailPixelGroup(model.spiralsCW_IO);
 
         addParameter(nextGroup);
-        addParameter(position);
-        addParameter(width);
-        
         this.nextGroup.addListener(new LXParameterListener() {
             public void onParameterChanged(LXParameter p) {
                 if (((BooleanParameter)p).getValueb()) {
@@ -40,6 +36,9 @@ public class DemoNormalCollectionPattern extends PeacockPattern {
                 }
             }
             });        
+
+        addParameter(position);
+        addParameter(width);        
     }
     
     public void goNextGroup() {

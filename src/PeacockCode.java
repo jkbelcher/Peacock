@@ -129,7 +129,8 @@ public class PeacockCode extends PApplet {
             model.isInitialized = true;
 
             //For development, initialize to desired pattern.
-            lx.engine.getChannel(0)            
+            lx.engine.getChannel(0)
+                .addPattern(new DashesPattern(lx))
                 .addPattern(new DemoNormalCollectionPattern(lx))
                 .addPattern(new DemoNormalPanelsLRPattern(lx))
                 .addPattern(new DemoNormalFeathersLRPattern(lx))

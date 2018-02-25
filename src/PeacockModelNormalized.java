@@ -23,6 +23,7 @@ public class PeacockModelNormalized {
         tailPixelGroups.add(model.feathersLR);
         tailPixelGroups.add(model.panelsLR);
         tailPixelGroups.add(model.spiralsCW_IO);
+        tailPixelGroups.add(model.spiralsCCW_IO);
         
         setIndex(0);
     }
