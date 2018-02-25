@@ -1,9 +1,5 @@
 import java.io.FileReader;
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,8 +15,6 @@ import org.supercsv.prefs.CsvPreference;
 
 import heronarts.lx.model.LXFixture;
 import heronarts.lx.model.LXModel;
-import heronarts.lx.model.LXPoint;
-import heronarts.lx.transform.LXTransform;
 
 /**
  * This model represents the entire Peacock puppet.
@@ -44,6 +38,7 @@ public class PeacockModel extends LXModel {
     //Each group contains a list of pairs of [Tailpixel] + [normalized position within the group]
     public final TailPixelGroup feathersLR;
     public final TailPixelGroup panelsLR;
+    public final TailPixelGroup spiralsCW_IO;
     
     //public final TailPixelGroup spiralsLR;
     //public final TailPixelGroup spiralsRL;
@@ -69,14 +64,14 @@ public class PeacockModel extends LXModel {
             fixture.setLoaded();
         }
         
-        //this.eyePixels = new ArrayList<TailPixel>();
-        //this.panelPixels = new ArrayList<TailPixel>();
-        //this.spirals = new TreeMap<Integer, TailPixelGroup>();
+        //Logical groups
         this.feathers = new ArrayList<TailPixelGroup>();
         this.panels = new ArrayList<TailPixelGroup>();
         
+        //Normalized mappings
         this.feathersLR = new TailPixelGroup();
         this.panelsLR = new TailPixelGroup();
+        this.spiralsCW_IO = new TailPixelGroup();
         
         this.initializeSubCollections();
     }
@@ -116,6 +111,14 @@ public class PeacockModel extends LXModel {
             }
         }
         
+        //SpiralsCW_OI = Spirals, Clockwise, Outside->Inside
+        for (TailPixel p : this.tailPixels) {
+            if (p.isPanelPixel() && p.params.spiral % 2 == 0) {                
+                this.spiralsCW_IO.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        
+        
         /*
         //Spirals (numbered from the original circular layout)
         for (TailPixel p : this.tailPixels) {
@@ -151,6 +154,9 @@ public class PeacockModel extends LXModel {
 
         this.panelsLR.tailPixels.sort((p1,p2) -> p1.getPanel() == p2.getPanel() ? Float.compare(p1.getPoint().r, p2.getPoint().r) : p1.getPanel() - p2.getPanel());
         this.panelsLR.copyIndicesToChildren().calculateNormalsByIndex();
+        
+        this.spiralsCW_IO.tailPixels.sort((p1,p2) -> p1.getSpiral() == p2.getSpiral() ? p2.getPosition() - p1.getPosition() : p2.getSpiral() - p1.getSpiral());
+        this.spiralsCW_IO.copyIndicesToChildren().calculateNormalsByIndex();    //*Could do normals by position and not by spiral.
     	
     	return this;
     }

@@ -130,6 +130,7 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)            
+                .addPattern(new DemoNormalCollectionPattern(lx))
                 .addPattern(new DemoNormalPanelsLRPattern(lx))
                 .addPattern(new DemoNormalFeathersLRPattern(lx))
                 .addPattern(new DemoChannelPattern(lx))

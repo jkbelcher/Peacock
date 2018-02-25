@@ -11,23 +11,13 @@ import heronarts.lx.parameter.DiscreteParameter;
 //
 //This prevents each pattern from needing to cast LXModel to JouleModel.
 
-public abstract class PeacockPattern extends LXPattern {
+public abstract class PeacockPattern extends RandomizableLXPattern {
 
     protected final PeacockModel model;
 
     public PeacockPattern(LX lx) {
         super(lx);
         this.model = (PeacockModel)lx.model;
-    }
-
-    public static void randomizeParameter(BoundedParameter parameter) {
-        float newValue = (float) ((Math.random()*(parameter.range.max-parameter.range.min))+parameter.range.min);
-        parameter.setValue(newValue);
-    }
-
-    public static void randomizeParameter(DiscreteParameter parameter) {
-        int newValue = (int) (Math.random() * ((float)(parameter.getRange()))+parameter.getMinValue());
-        parameter.setValue(newValue);
     }
 
     public int getRandomColor() {
