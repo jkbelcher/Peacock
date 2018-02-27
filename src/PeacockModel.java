@@ -179,7 +179,7 @@ public class PeacockModel extends LXModel {
         }
 
         //Tail Pixels
-        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/bestXandYsV3.csv");
+        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/bigboi.csv");
         for (TailPixelParameters p : tpP) {
             TailPixel newTailPixel = new TailPixel(p);
             tailPixels.add(newTailPixel);
@@ -261,6 +261,7 @@ public class PeacockModel extends LXModel {
             new ParseInt(), // int rung;
             new ParseDouble(), // float x;
             new ParseDouble(), // float y;
+            new ParseDouble(), // float z;
         };
     }
 
@@ -289,6 +290,7 @@ public class PeacockModel extends LXModel {
                 p.rung = Integer.parseInt(c.get("Rung").toString());
                 p.x = Double.parseDouble(c.get("X in Inches").toString());
                 p.y = Double.parseDouble(c.get("Y in Inches").toString());
+                p.z = Double.parseDouble(c.get("Z in Inches").toString());
 
                 results.add(p);
             }
