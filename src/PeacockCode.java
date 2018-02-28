@@ -1,14 +1,23 @@
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.HashMap;
 
+import heronarts.lx.LXBus;
+import heronarts.lx.LXChannel;
+import heronarts.lx.LXChannel.Listener;
+import heronarts.lx.LXEffect;
+import heronarts.lx.LXPattern;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.osc.LXOscListener;
 import heronarts.lx.osc.OscMessage;
 import heronarts.lx.output.LXDatagramOutput;
 import heronarts.lx.output.StreamingACNDatagram;
+import heronarts.lx.parameter.BooleanParameter;
+import heronarts.lx.parameter.CompoundParameter;
+import heronarts.lx.parameter.LXParameter;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
@@ -177,6 +186,106 @@ public class PeacockCode extends PApplet implements LXOscListener {
             }
 
         }
+        
+        lx.engine.getChannel(0).addListener(new Listener() {
+
+            @Override
+            public void effectAdded(LXBus arg0, LXEffect arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void effectMoved(LXBus arg0, LXEffect arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void effectRemoved(LXBus arg0, LXEffect arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void indexChanged(LXChannel arg0) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void patternAdded(LXChannel arg0, LXPattern arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void patternDidChange(LXChannel channel, LXPattern pattern) {
+                patternChanged(channel, pattern);                
+            }
+
+            @Override
+            public void patternMoved(LXChannel arg0, LXPattern arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void patternRemoved(LXChannel arg0, LXPattern arg1) {
+                // TODO Auto-generated method stub
+                
+            }
+
+            @Override
+            public void patternWillChange(LXChannel arg0, LXPattern arg1, LXPattern arg2) {
+                // TODO Auto-generated method stub
+                
+            }            
+        });
+    }
+    
+    public void patternChanged(LXChannel channel, LXPattern pattern) {
+        PApplet.println("New Pattern selected: " + pattern.getLabel());
+        //Send OSC updates to Parameters page in TouchOSC
+        
+        //Pattern name
+        SendToTouchOSCclients("/patternname "+pattern.getLabel());
+        
+        //Hide all parameter controls, in case there are fewer in this pattern than the previous pattern.
+        PApplet.println("Resetting controls...");
+        for (int pIndex = 1; pIndex < 11; pIndex++)
+        {
+            SendToTouchOSCclients("/paramlabel"+pIndex+" UNUSED");
+            SendToTouchOSCclients("/paramlabel"+pIndex+"/visible 0");
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible 0");
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible 0");                    
+        }
+        
+        //Set labels and type for this pattern's parameters
+        int pIndex = 1;
+        for (LXParameter p : pattern.getParameters()) {            
+            PApplet.println(p.getClass());
+            //Label
+            SendToTouchOSCclients("/paramlabel"+pIndex+" "+p.getLabel());
+            SendToTouchOSCclients("/paramlabel"+pIndex+"/visible 1");
+                                            
+            //Type
+            if (p instanceof BooleanParameter) {
+                String boolStatus = ((BooleanParameter) p).getValueb() ? "1" : "0";
+                SendToTouchOSCclients("/paramcontrol"+pIndex+"bool " + boolStatus);                
+                SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible 1");
+            } else if (p instanceof CompoundParameter) {
+                SendToTouchOSCclients("/paramcontrol"+pIndex+"fader " + p.getValue());                
+                SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible 1");
+            }
+            
+            pIndex++;
+        }
+    }
+    
+    public void SendToTouchOSCclients(String command) {
+        //TO-DO: send the command to client instead of printing.
+        PApplet.println(command);        
     }
 
     public void draw(){
