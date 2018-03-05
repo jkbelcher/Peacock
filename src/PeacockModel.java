@@ -251,8 +251,6 @@ public class PeacockModel extends LXModel {
             new UniqueHashCode(), // id (must be unique)
             new NotNull(), // ipAddress
             new ParseInt(), // port
-            new ParseInt(), // numberOfChannels
-            new ParseInt() // LEDsPerChannel
         };
     }
 
@@ -274,8 +272,6 @@ public class PeacockModel extends LXModel {
                 p.id = Integer.parseInt(c.get("id").toString());
                 p.ipAddress = c.get("ipAddress").toString();
                 p.port = Integer.parseInt(c.get("port").toString());
-                p.numberOfChannels = Integer.parseInt(c.get("numberOfChannels").toString());
-                p.LEDsPerChannel = Integer.parseInt(c.get("LEDsPerChannel").toString());
 
                 results.add(p);
             }
