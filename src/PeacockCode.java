@@ -70,12 +70,10 @@ public class PeacockCode extends PApplet {
             protected void initialize(LXStudio lx, LXStudio.UI ui) {
                 // Add custom LXComponents or LXOutput objects to the engine here,
                 // before the UI is constructed
-
-                /*
-                //Example patterns from Joule:
-                lx.registerPattern(SimpleChasePattern.class);
-                lx.registerPattern(GemEdgePattern.class);
-                */
+                
+                //Make patterns available in the browser
+                lx.registerPattern(SolidColorPeacockPattern.class);
+                lx.registerPattern(DashesPattern.class);
 
                 //Cast the model to access model-specific properties from within this overridden initialize() function.
                 PeacockModel m = (PeacockModel)model;

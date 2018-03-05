@@ -16,18 +16,22 @@ public class PeacockModelNormalized {
     private int index;    
     private TailPixelGroup group;
     
-    public PeacockModelNormalized(PeacockModel model) {
+    public PeacockModelNormalized(PeacockModel model)
+    {
+        this(model, new TailPixelGroup[] { model.feathersLR, model.panelsLR, model.spiralsCW_IO, model.spiralsCCW_IO });
+    }
+
+    public PeacockModelNormalized(PeacockModel model, TailPixelGroup[] groups) {
         this.model = model;
         
         tailPixelGroups = new ArrayList<TailPixelGroup>();
-        tailPixelGroups.add(model.feathersLR);
-        tailPixelGroups.add(model.panelsLR);
-        tailPixelGroups.add(model.spiralsCW_IO);
-        tailPixelGroups.add(model.spiralsCCW_IO);
+        for (TailPixelGroup group : groups) {
+            tailPixelGroups.add(group);
+        }
         
         setIndex(0);
     }
-    
+
     public int getIndex () {
         return this.index;
     }
@@ -66,6 +70,11 @@ public class PeacockModelNormalized {
 
     public PeacockModelNormalized goNext() {
         this.setIndex((index+1)%this.tailPixelGroups.size());
+        return this;
+    }
+    
+    public PeacockModelNormalized goRandom() {
+        this.setIndex((int)(Math.random()*this.tailPixelGroups.size()));
         return this;
     }
     

@@ -7,14 +7,8 @@ import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import heronarts.lx.parameter.BooleanParameter.Mode;
 
-public class DashesPattern extends PeacockPattern {
+public class DashesPattern extends PeacockPatternNormalized {
 
-    public final PeacockModelNormalized modelN;
-    
-    public final BooleanParameter nextGroup = 
-            new BooleanParameter("NextGroup")
-            .setDescription("Change the pattern to target the next TailPixelGroup")
-            .setMode(Mode.MOMENTARY);
     public final CompoundParameter hue = 
             new CompoundParameter("Hue", LXColor.h(LXColor.RED), 0, 360)
             .setDescription("Hue");
@@ -34,17 +28,7 @@ public class DashesPattern extends PeacockPattern {
     public DashesPattern(LX lx) {
         super(lx);
 
-        this.modelN = new PeacockModelNormalized(model);
         this.modelN.setTailPixelGroup(model.spiralsCW_IO);  //start with a fun one
-        
-        addParameter(nextGroup);
-        this.nextGroup.addListener(new LXParameterListener() {
-            public void onParameterChanged(LXParameter p) {
-                if (((BooleanParameter)p).getValueb()) {
-                    goNextGroup();
-                }
-            }
-            });
         
         addParameter(hue);
         addParameter(length);
@@ -55,11 +39,8 @@ public class DashesPattern extends PeacockPattern {
         this.autoRandom.setValue(false);
     }
     
-    public void goNextGroup() {
-        this.modelN.goNext();
-    }
-    
     public void setRandomParameters() {
+        randomizeTargetGroup();
         randomizeParameter(this.hue);
         randomizeParameter(this.length);
         randomizeParameter(this.lengthOff);
