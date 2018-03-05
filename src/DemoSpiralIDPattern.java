@@ -2,13 +2,13 @@ import heronarts.lx.LX;
 import heronarts.lx.color.LXColor;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXListenableNormalizedParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.lx.parameter.LXParameterListener;
 import processing.core.PApplet;
 import heronarts.lx.parameter.BooleanParameter.Mode;
 
 public class DemoSpiralIDPattern extends PeacockPattern {
-
     public final DiscreteParameter spiralID = 
         new DiscreteParameter("SpiralID", 1, 1, 24)
         .setDescription("Spiral ID to light");

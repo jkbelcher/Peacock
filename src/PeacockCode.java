@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -17,6 +18,8 @@ import heronarts.lx.output.LXDatagramOutput;
 import heronarts.lx.output.StreamingACNDatagram;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.CompoundParameter;
+import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
@@ -30,12 +33,19 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
     public static PeacockCode applet;
 
-    // For mapping pattern names to indexes.
-    HashMap<String, Integer> PatternNameToIndex = new HashMap<>();
-
+    // Hashmaps for bi-directional OSC routing
+    HashMap<String, String> TouchOscToLXOsc = new HashMap<>();
+    HashMap<String, String> LXOscToTouchOsc = new HashMap<>();
+    
+    // TouchOSC variables
+    long lastOscHeartbeat = System.currentTimeMillis();
+    boolean oscSendLock = false;
+    
     // Top-level, we have a model and an LXStudio instance
     PeacockModel model;
     LXStudio lx;
+
+    private final OscMessage oscMsg = new OscMessage("");
 
     //For "help" mode which helps define mapped/unmapped pixels
     private boolean isHelpMode = false;
@@ -57,14 +67,6 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
     public void setup(){
         PeacockCode.applet = this;
-
-        // Patterns on channel 0
-        PatternNameToIndex.put("panel"   , 1);
-        PatternNameToIndex.put("feather" , 2);
-        PatternNameToIndex.put("channel" , 3);
-        PatternNameToIndex.put("spiral"  , 4);
-        PatternNameToIndex.put("solid"   , 5);
-        PatternNameToIndex.put("audio"   , 6);
 
         //Monitor key events for Ctrl+Q = Quit, Ctrl+H = Help, etc.
         registerMethod("keyEvent", this);
@@ -176,11 +178,12 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 .addPattern(new RainbowAmplitudePattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
-
             lx.engine.audio.enabled.setValue(true);
             lx.engine.audio.meter.gain.setValue(18);
+            lx.engine.osc.transmitActive.setValue(true);
             try {
                 lx.engine.osc.receiver(8000).addListener(this);
+                lx.engine.osc.receiver(3131).addListener(this);
             } catch (SocketException e) {
                 e.printStackTrace();
             }
@@ -242,54 +245,167 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 
             }            
         });
+        
+        updatePatternList();
+        
+        // Just to get TouchOSC up-to-date. There's probably a much better way.
+        lx.engine.getChannel(0).goNext();
+        lx.engine.getChannel(0).goPrev();
+        
+        
     }
     
     public void patternChanged(LXChannel channel, LXPattern pattern) {
         PApplet.println("New Pattern selected: " + pattern.getLabel());
-        //Send OSC updates to Parameters page in TouchOSC
+        updatePatternControls(channel, pattern);
+    }
+    
+    public void updatePatternList() {
+        // Update the TouchOSC pattern selection list 
+        for (int ptToggleIndex = 1; ptToggleIndex <= 13; ptToggleIndex++)
+        {
+            if (ptToggleIndex > lx.engine.getChannel(0).getPatterns().size() - 1) {
+                SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 0);
+                SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 0);
+            } else {
+                if (ptToggleIndex == lx.engine.getChannel(0).getActivePatternIndex()) {
+                    SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 1);
+                } else {
+                    SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 0);
+                }
+                
+                SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 1);
+                SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 1);
+            }
+        }
+    }
+    
+    public void updatePatternControls(LXChannel channel, LXPattern pattern) {
+        // Update touchOSC clients with current pattern parameters/values
+        SendToTouchOSCclients("/patternname", pattern.getLabel());
         
-        //Pattern name
-        SendToTouchOSCclients("/patternname "+pattern.getLabel());
+        // Clear OSC address hashmaps
+        TouchOscToLXOsc.clear();
+        LXOscToTouchOsc.clear();
+        
+        for (LXPattern p: lx.engine.getChannel(0).getPatterns()) {
+            if (p.getIndex() > 0) {
+                SendToTouchOSCclients("/patternlist/patternlabel"+p.getIndex(), p.getLabel());
+            }
+        }
         
         //Hide all parameter controls, in case there are fewer in this pattern than the previous pattern.
-        PApplet.println("Resetting controls...");
-        for (int pIndex = 1; pIndex < 11; pIndex++)
+        for (int pIndex = 1; pIndex < 8; pIndex++)
         {
-            SendToTouchOSCclients("/paramlabel"+pIndex+" UNUSED");
-            SendToTouchOSCclients("/paramlabel"+pIndex+"/visible 0");
-            SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible 0");
-            SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible 0");                    
+            SendToTouchOSCclients("/paramlabel"+pIndex+"bool", "UNUSED");
+            SendToTouchOSCclients("/paramlabel"+pIndex+"bool/visible", 0);
+            SendToTouchOSCclients("/paramlabel"+pIndex+"fader", "UNUSED");
+            SendToTouchOSCclients("/paramlabel"+pIndex+"fader/visible", 0);
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible", 0);
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible", 0);
         }
         
         //Set labels and type for this pattern's parameters
         int pIndex = 1;
-        for (LXParameter p : pattern.getParameters()) {            
-            PApplet.println(p.getClass());
-            //Label
-            SendToTouchOSCclients("/paramlabel"+pIndex+" "+p.getLabel());
-            SendToTouchOSCclients("/paramlabel"+pIndex+"/visible 1");
-                                            
+        int pIndexBool = 1;
+        int pIndexFader = 1;
+        for (LXParameter p : pattern.getParameters()) {
+            
             //Type
             if (p instanceof BooleanParameter) {
-                String boolStatus = ((BooleanParameter) p).getValueb() ? "1" : "0";
-                SendToTouchOSCclients("/paramcontrol"+pIndex+"bool " + boolStatus);                
-                SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible 1");
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndex+"bool", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndex+"bool/visible", 1);
+
+                int boolStatus = ((BooleanParameter) p).getValueb() ? 1 : 0;
+                SendToTouchOSCclients("/paramcontrol"+pIndexBool+"bool", boolStatus);
+                SendToTouchOSCclients("/paramcontrol"+pIndexBool+"bool/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexBool+"bool", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexBool+"bool");
+                pIndexBool++;
+
             } else if (p instanceof CompoundParameter) {
-                SendToTouchOSCclients("/paramcontrol"+pIndex+"fader " + p.getValue());                
-                SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible 1");
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
+
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((CompoundParameter) p).getNormalized());                
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
+                pIndexFader++;
             }
+
             
-            pIndex++;
         }
     }
     
-    public void SendToTouchOSCclients(String command) {
-        //TO-DO: send the command to client instead of printing.
-        PApplet.println(command);        
+    public void SendToTouchOSCclients(String address, String val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
     }
 
+    public void SendToTouchOSCclients(String address, double val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
+    }
+
+    public void SendToTouchOSCclients(String address, int val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
+    }
+
+    public void sendMsg(OscMessage msg) {
+        try {
+            if (!oscSendLock) {
+                oscSendLock = true;
+                lx.engine.osc.transmitter("192.168.1.215", 8080).send(oscMsg);
+                oscSendLock = false;    
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+ 
+    @Override
+    public void oscMessage(OscMessage arg0) {
+        String oscAddress = arg0.getAddressPattern().toString();
+        String[] oscInAddressSplit = oscAddress.split("/");
+        if (TouchOscToLXOsc.containsKey(oscAddress)) {
+            String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
+            String pName = addressSplit[addressSplit.length - 1];
+            lx.engine.getChannel(0).getActivePattern()
+                .getParameter(pName)
+                .setValue(arg0.getDouble());
+        } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
+            SendToTouchOSCclients(LXOscToTouchOsc.get(oscAddress), arg0.getDouble());    
+        } else if (oscAddress.equals("/1/prevpattern") && arg0.getBoolean()) {
+            lx.engine.getChannel(0).goPrev();
+        } else if (oscAddress.equals("/1/nextpattern") && arg0.getBoolean()) {
+            lx.engine.getChannel(0).goNext();
+        } else if (oscAddress.contains("/patternlist/patterntoggle")) {
+            int patternIndex = Integer.parseInt(oscInAddressSplit[3]);
+            lx.engine.getChannel(0).goIndex(patternIndex);
+            updatePatternList();
+        }
+    }
+    
     public void draw(){
         // Empty placeholder... LX handles everything for us!
+        
+        // Heartbeat to touchOSC in case a packet gets dropped
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastOscHeartbeat > 1000.0) {
+            updatePatternControls(lx.engine.getChannel(0), lx.engine.getChannel(0).getActivePattern());
+            updatePatternList();
+            lastOscHeartbeat = currentTime;
+        }
     }
 
     public void keyEvent(KeyEvent keyEvent) {
@@ -336,39 +452,6 @@ public class PeacockCode extends PApplet implements LXOscListener {
            */
         this.isHelpMode = false;
         println("Help mode OFF");
-    }
-
-    @Override
-    public void oscMessage(OscMessage arg0) {
-        String[] oscAddressArray = arg0.getAddressPattern().toString().split("/");
-        // PApplet.println(oscAddressArray);
-        // PApplet.println(arg0);
-        String patternName = oscAddressArray[1];
-        int patternIndex = PatternNameToIndex.get(patternName);
-
-        if (oscAddressArray.length > 2) {
-            String patternParam = oscAddressArray[2];
-            // PApplet.println(patternParam);
-
-            // Parse to integers where needed (can't send ints with osc)
-            if (patternName.equals("channel") || patternName.equals("spiral")) {
-                lx.engine.getChannel(0)
-                    .getPattern(patternIndex)
-                    .getParameter(patternParam)
-                    .setValue(arg0.getInt(0));
-            } else {
-                lx.engine.getChannel(0)
-                    .getPattern(patternIndex)
-                    .getParameter(patternParam)
-                    .setValue(arg0.getDouble(0));
-            }
-        } else {
-            lx.engine.getChannel(0)
-                .goIndex(patternIndex);
-            lx.engine.getChannel(0)
-                .focusedPattern
-                .setValue(patternIndex);
-        }
     }
 
 }
