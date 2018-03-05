@@ -49,7 +49,8 @@ public class PeacockCode extends PApplet {
         // Create the model, which describes where our light points are
         println("Loading config from file...");
         try {
-            model = PeacockModel.LoadConfigurationFromFile();
+            model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/bigboi.csv");  //Big Peacock
+            //model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/bestXandYsV3.csv");  //Small Peacock
             PApplet.println("Loaded"
                     ,model.controllers.size() + " controllers,"
                     ,model.allPeacockFixtures.size() + " fixtures,"

@@ -27,10 +27,13 @@ public class PeacockModel extends LXModel {
     public final List<PeacockController> controllers;
     public final List<TailPixel> tailPixels;
     
-    //Logical groupings of tail pixels
+    //Logical groupings of pixels
     //Use these maps to find specific components by ID
     public final List<TailPixelGroup> feathers;
     public final List<TailPixelGroup> panels;
+    public final TailPixelGroup body;
+    public final TailPixelGroup neck;
+    public final TailPixelGroup eyes;
     
     //Normalized mappings
     //There are a bunch of different ways to group/order the spirals.
@@ -62,6 +65,9 @@ public class PeacockModel extends LXModel {
         //Logical groups
         this.feathers = new ArrayList<TailPixelGroup>();
         this.panels = new ArrayList<TailPixelGroup>();
+        this.body = new TailPixelGroup();
+        this.neck = new TailPixelGroup();
+        this.eyes = new TailPixelGroup();
         
         //Normalized mappings
         this.feathersLR = new TailPixelGroup();
@@ -92,6 +98,28 @@ public class PeacockModel extends LXModel {
                 this.panels.get(p.panel-1).addTailPixelPosition(new TailPixelPos(p));
             }
         }
+        
+        //Body
+        for (TailPixel p : this.tailPixels) {
+            if (p.isBodyPixel()) {
+                this.body.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        
+        //Neck
+        for (TailPixel p : this.tailPixels) {
+            if (p.isNeckPixel()) {
+                this.neck.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        
+        //Eyes
+        for (TailPixel p : this.tailPixels) {
+            if (p.isEyePixel()) {
+                this.eyes.addTailPixelPosition(new TailPixelPos(p));
+            }
+        }
+        
                 
     	//FeathersLR
         for (TailPixel p : this.tailPixels) {
@@ -139,7 +167,18 @@ public class PeacockModel extends LXModel {
             g.copyIndicesToChildren().calculateNormalsByIndex();
         }
 
-        //Sort by feather, then by position
+        //Body
+        this.body.tailPixels.sort((p1,p2) -> p2.getPosition() - p1.getPosition());
+        this.body.copyIndicesToChildren().calculateNormalsByIndex();
+                
+        //Neck
+        this.neck.tailPixels.sort((p1,p2) -> p2.getPosition() - p1.getPosition());
+        this.neck.copyIndicesToChildren().calculateNormalsByIndex();
+        
+        //Eyes
+        this.eyes.tailPixels.sort((p1,p2) -> p2.getPosition() - p1.getPosition());
+        this.eyes.copyIndicesToChildren().calculateNormalsByIndex();
+        
         this.feathersLR.tailPixels.sort((p1,p2) -> p1.getFeather() == p2.getFeather() ? p2.getPosition() - p1.getPosition() : p1.getFeather() - p2.getFeather());
         this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
 
@@ -161,7 +200,7 @@ public class PeacockModel extends LXModel {
     //For CSV files:
     static public final String subSeparator = ";";
 
-    public static PeacockModel LoadConfigurationFromFile() throws Exception
+    public static PeacockModel LoadConfigurationFromFile(String controllerFile, String pixelFile) throws Exception
     {
         final List<PeacockFixture> allPeacockFixtures = new ArrayList<PeacockFixture>();
         final List<PeacockController> controllers = new ArrayList<PeacockController>();
@@ -171,7 +210,7 @@ public class PeacockModel extends LXModel {
         final TreeMap<Integer,PeacockController> controllersDict = new TreeMap<Integer,PeacockController>();
 
         //Controllers
-        List<ControllerParameters> cP = ReadControllersFromFile("./config/controllers.csv");
+        List<ControllerParameters> cP = ReadControllersFromFile(controllerFile);
         for (ControllerParameters p : cP) {
             PeacockController newController = new PeacockController(p);
             controllers.add(newController);
@@ -179,7 +218,7 @@ public class PeacockModel extends LXModel {
         }
 
         //Tail Pixels
-        List<TailPixelParameters> tpP = ReadTailPixelsFromFile("./config/bigboi.csv");
+        List<TailPixelParameters> tpP = ReadTailPixelsFromFile(pixelFile);
         for (TailPixelParameters p : tpP) {
             TailPixel newTailPixel = new TailPixel(p);
             tailPixels.add(newTailPixel);

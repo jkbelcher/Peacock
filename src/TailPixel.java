@@ -33,5 +33,17 @@ public class TailPixel extends LXAbstractFixtureMapped implements Comparable<Tai
     public Boolean isPanelPixel() {
         return this.panel > 0;
     }
+    
+    public Boolean isBodyPixel() {
+        return this.panel==0 && this.feather==0 && this.params.controllerChannel == 13;
+    }
+
+    public Boolean isNeckPixel() {
+        return this.panel==0 && this.feather==0 && this.params.controllerChannel == 14;
+    }
+
+    public Boolean isEyePixel() {
+        return this.panel==0 && this.feather==0 && this.params.controllerChannel == 30;
+    }
 
 }
