@@ -74,6 +74,7 @@ public class PeacockCode extends PApplet {
                 //Make patterns available in the browser
                 lx.registerPattern(SolidColorPeacockPattern.class);
                 lx.registerPattern(DashesPattern.class);
+                lx.registerPattern(RainbowShiftPattern.class);
 
                 //Cast the model to access model-specific properties from within this overridden initialize() function.
                 PeacockModel m = (PeacockModel)model;
@@ -129,6 +130,7 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+                .addPattern(new RainbowShiftPattern(lx))
                 .addPattern(new DashesPattern(lx))
                 .addPattern(new DemoNormalCollectionPattern(lx))
                 .addPattern(new DemoNormalPanelsLRPattern(lx))
