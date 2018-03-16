@@ -1,5 +1,6 @@
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -58,6 +59,7 @@ public class PeacockModel extends LXModel {
         this.tailPixels = tailPixels;
         
         //Sort TailPixels within each collection
+        Collections.sort(this.allPeacockFixtures);
         for (PeacockFixture fixture : this.allPeacockFixtures) {
             fixture.setLoaded();
         }

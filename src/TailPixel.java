@@ -23,7 +23,7 @@ public class TailPixel extends LXAbstractFixtureMapped implements Comparable<Tai
     @Override
     public int compareTo(TailPixel o) {
         int comparePosition = o.params.position;
-        return this.params.position - comparePosition;
+        return comparePosition - this.params.position;
     }
     
     public Boolean isFeatherPixel() {
