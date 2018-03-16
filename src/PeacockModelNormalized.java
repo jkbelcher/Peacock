@@ -26,7 +26,8 @@ public class PeacockModelNormalized {
         
         tailPixelGroups = new ArrayList<TailPixelGroup>();
         for (TailPixelGroup group : groups) {
-            tailPixelGroups.add(group);
+            if (group.size() > 0)
+                tailPixelGroups.add(group);
         }
         
         setIndex(0);
