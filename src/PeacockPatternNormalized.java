@@ -8,6 +8,11 @@ public abstract class PeacockPatternNormalized extends PeacockPattern {
 
     public final PeacockModelNormalized modelN;
     
+    public final BooleanParameter randGroup = 
+            new BooleanParameter("RandGroup", true)
+            .setDescription("When ENABLED, the target group will be included in the randomization.")
+            .setMode(Mode.TOGGLE);
+    
     public final BooleanParameter nextGroup = 
             new BooleanParameter("NextGroup")
             .setDescription("Change the pattern to target the next TailPixelGroup")
@@ -18,6 +23,7 @@ public abstract class PeacockPatternNormalized extends PeacockPattern {
         
         this.modelN = new PeacockModelNormalized(model);
         
+        addParameter(randGroup);
         addParameter(nextGroup);
         this.nextGroup.addListener(new LXParameterListener() {
             public void onParameterChanged(LXParameter p) {
@@ -63,7 +69,9 @@ public abstract class PeacockPatternNormalized extends PeacockPattern {
     }
 
     public void randomizeTargetGroup() {
-        this.modelN.goRandom();
+        if (this.randGroup.getValueb()) {
+            this.modelN.goRandom();
+        }
     }
 
 }

@@ -10,21 +10,21 @@ import heronarts.lx.parameter.BooleanParameter.Mode;
 
 public abstract class RandomizableLXPattern extends LXPattern {
 
-    public final BooleanParameter autoRandom = 
-            new BooleanParameter("AutoRandom", true)
-            .setDescription("When ENABLED, randomize will be called every time the pattern is started.")
-            .setMode(Mode.TOGGLE);
-
     public final BooleanParameter randomize = 
             new BooleanParameter("Randomize")
             .setDescription("Randomize the parameters")
             .setMode(Mode.MOMENTARY);
     
+    public final BooleanParameter autoRandom = 
+            new BooleanParameter("AutoRandom", true)
+            .setDescription("When ENABLED, randomize will be called every time the pattern is started.")
+            .setMode(Mode.TOGGLE);
+
     public RandomizableLXPattern(LX lx) {
         super(lx);
         
-        addParameter(autoRandom);
         addParameter(randomize);
+        addParameter(autoRandom);
         
         this.randomize.addListener(new LXParameterListener() {
             public void onParameterChanged(LXParameter p) {
