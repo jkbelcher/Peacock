@@ -76,6 +76,7 @@ public class PeacockCode extends PApplet {
                 lx.registerPattern(DashesPattern.class);
                 lx.registerPattern(RainbowShiftPattern.class);
                 lx.registerPattern(VUMeterPattern.class);
+                lx.registerPattern(StrobePattern.class);
                 
                 //Add demo patterns to browser
                 lx.registerPattern(DemoNormalCollectionPattern.class);
@@ -138,6 +139,7 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
+                .addPattern(new StrobePattern(lx))
                 .addPattern(new VUMeterPattern(lx))
                 .addPattern(new RainbowShiftPattern(lx))
                 .addPattern(new DashesPattern(lx))

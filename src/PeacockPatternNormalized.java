@@ -39,6 +39,7 @@ public abstract class PeacockPatternNormalized extends PeacockPattern {
         
         this.modelN = new PeacockModelNormalized(model, groups);
 
+        addParameter(randGroup);
         addParameter(nextGroup);
         this.nextGroup.addListener(new LXParameterListener() {
             public void onParameterChanged(LXParameter p) {
@@ -54,6 +55,7 @@ public abstract class PeacockPatternNormalized extends PeacockPattern {
         
         this.modelN = modelN;
     
+        addParameter(randGroup);
         addParameter(nextGroup);
         this.nextGroup.addListener(new LXParameterListener() {
             public void onParameterChanged(LXParameter p) {
