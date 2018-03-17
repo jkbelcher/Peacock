@@ -77,6 +77,7 @@ public class PeacockCode extends PApplet {
                 lx.registerPattern(RainbowShiftPattern.class);
                 lx.registerPattern(VUMeterPattern.class);
                 lx.registerPattern(StrobePattern.class);
+                lx.registerPattern(RisingSquaresPattern.class);
                 
                 //Add demo patterns to browser
                 lx.registerPattern(DemoNormalCollectionPattern.class);
@@ -139,12 +140,13 @@ public class PeacockCode extends PApplet {
 
             //For development, initialize to desired pattern.
             lx.engine.getChannel(0)
-                .addPattern(new StrobePattern(lx))
-                .addPattern(new VUMeterPattern(lx))
                 .addPattern(new RainbowShiftPattern(lx))
                 .addPattern(new DashesPattern(lx))
-                .addPattern(new SolidColorPeacockPattern(lx))
+                .addPattern(new VUMeterPattern(lx))
+                .addPattern(new StrobePattern(lx))
+                .addPattern(new RisingSquaresPattern(lx))
                 .addPattern(new AudioPeacockPattern(lx))
+                .addPattern(new SolidColorPeacockPattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
 
