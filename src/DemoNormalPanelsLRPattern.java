@@ -32,7 +32,7 @@ public class DemoNormalPanelsLRPattern extends PeacockPattern {
         for (TailPixelPos tpp : model.panelsLR.tailPixels) {
             if (tpp.getN() > position - width && tpp.getN() < position + width) {
                 float brightness = (width - Math.abs(position-tpp.getN())) / width;
-                colors[tpp.getIndexColor()] = LXColor.scaleBrightness(LXColor.WHITE, brightness);
+                colors[tpp.getIndexColor()] = LXColor.scaleBrightness(LXColor.RED, brightness);
             }
         }
     }

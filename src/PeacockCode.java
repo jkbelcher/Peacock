@@ -76,6 +76,13 @@ public class PeacockCode extends PApplet {
                 lx.registerPattern(DashesPattern.class);
                 lx.registerPattern(RainbowShiftPattern.class);
                 lx.registerPattern(VUMeterPattern.class);
+                
+                //Add demo patterns to browser
+                lx.registerPattern(DemoNormalCollectionPattern.class);
+                lx.registerPattern(DemoChannelPattern.class);
+                lx.registerPattern(DemoSpiralIDPattern.class);
+                lx.registerPattern(DemoNormalPanelsLRPattern.class);
+                lx.registerPattern(DemoNormalFeathersLRPattern.class);
 
                 //Cast the model to access model-specific properties from within this overridden initialize() function.
                 PeacockModel m = (PeacockModel)model;
@@ -134,11 +141,6 @@ public class PeacockCode extends PApplet {
                 .addPattern(new VUMeterPattern(lx))
                 .addPattern(new RainbowShiftPattern(lx))
                 .addPattern(new DashesPattern(lx))
-                .addPattern(new DemoNormalCollectionPattern(lx))
-                .addPattern(new DemoNormalPanelsLRPattern(lx))
-                .addPattern(new DemoNormalFeathersLRPattern(lx))
-                .addPattern(new DemoChannelPattern(lx))
-                .addPattern(new DemoSpiralIDPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
                 .addPattern(new AudioPeacockPattern(lx))
                 .focusedPattern.setValue(1);
@@ -146,7 +148,6 @@ public class PeacockCode extends PApplet {
 
             lx.engine.audio.enabled.setValue(true);
             lx.engine.audio.meter.gain.setValue(18);
-
         }
     }
 

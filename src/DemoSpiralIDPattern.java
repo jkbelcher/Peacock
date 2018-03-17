@@ -46,7 +46,7 @@ public class DemoSpiralIDPattern extends PeacockPattern {
 
 		for (TailPixel tp : model.tailPixels) {
 			if (tp.params.spiral == spiralID) {
-				colors[tp.p.index] = tp.params.position == position ? LXColor.BLUE : LXColor.WHITE;
+				colors[tp.p.index] = tp.params.position == position ? LXColor.WHITE : LXColor.BLUE;
 			}
 		}
 	}
