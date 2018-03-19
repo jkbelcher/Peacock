@@ -2,7 +2,6 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.HashMap;
 
@@ -11,7 +10,6 @@ import heronarts.lx.LXChannel;
 import heronarts.lx.LXChannel.Listener;
 import heronarts.lx.LXEffect;
 import heronarts.lx.LXPattern;
-import heronarts.lx.color.LXColor;
 import heronarts.lx.osc.LXOscListener;
 import heronarts.lx.osc.OscMessage;
 import heronarts.lx.output.LXDatagramOutput;
@@ -19,11 +17,11 @@ import heronarts.lx.output.StreamingACNDatagram;
 import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.DiscreteParameter;
-import heronarts.lx.parameter.LXListenableParameter;
 import heronarts.lx.parameter.LXParameter;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
+
 
 public class PeacockCode extends PApplet implements LXOscListener {
 
@@ -250,9 +248,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
         
         // Just to get TouchOSC up-to-date. There's probably a much better way.
         lx.engine.getChannel(0).goNext();
-        lx.engine.getChannel(0).goPrev();
-        
-        
+        lx.engine.getChannel(0).goPrev();    
     }
     
     public void patternChanged(LXChannel channel, LXPattern pattern) {
@@ -334,6 +330,16 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
                 LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
                 pIndexFader++;
+            } else if (p instanceof DiscreteParameter) {
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
+                
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((DiscreteParameter) p).getNormalized());                
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
+                pIndexFader++;               
             }
 
             
@@ -362,14 +368,15 @@ public class PeacockCode extends PApplet implements LXOscListener {
     }
 
     public void sendMsg(OscMessage msg) {
-        try {
-            if (!oscSendLock) {
-                oscSendLock = true;
+        if (!oscSendLock) {
+            oscSendLock = true;
+            try {
                 lx.engine.osc.transmitter("192.168.1.215", 8080).send(oscMsg);
-                oscSendLock = false;    
+        
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        oscSendLock = false;
         }
     }
  
@@ -377,22 +384,51 @@ public class PeacockCode extends PApplet implements LXOscListener {
     public void oscMessage(OscMessage arg0) {
         String oscAddress = arg0.getAddressPattern().toString();
         String[] oscInAddressSplit = oscAddress.split("/");
-        if (TouchOscToLXOsc.containsKey(oscAddress)) {
+        
+        // From TouchOSC...
+        if (TouchOscToLXOsc.containsKey(oscAddress)) {            
+            // Set values on corresponding LX parameters.
             String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
             String pName = addressSplit[addressSplit.length - 1];
-            lx.engine.getChannel(0).getActivePattern()
-                .getParameter(pName)
-                .setValue(arg0.getDouble());
-        } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
-            SendToTouchOSCclients(LXOscToTouchOsc.get(oscAddress), arg0.getDouble());    
+            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+            
+            if (p instanceof BooleanParameter) {
+                ((BooleanParameter) p).setValue(arg0.getBoolean());
+            } else if (p instanceof CompoundParameter) {
+                CompoundParameter cp = (CompoundParameter) p;
+                cp.setNormalized(arg0.getDouble());
+            } else if (p instanceof DiscreteParameter) {
+                DiscreteParameter dp = (DiscreteParameter) p;
+                dp.setNormalized(arg0.getDouble());
+            }
         } else if (oscAddress.equals("/1/prevpattern") && arg0.getBoolean()) {
+            // Switch to previous pattern.
             lx.engine.getChannel(0).goPrev();
         } else if (oscAddress.equals("/1/nextpattern") && arg0.getBoolean()) {
+            // Switch to next pattern.
             lx.engine.getChannel(0).goNext();
         } else if (oscAddress.contains("/patternlist/patterntoggle")) {
+            // Switch to selected pattern.
             int patternIndex = Integer.parseInt(oscInAddressSplit[3]);
             lx.engine.getChannel(0).goIndex(patternIndex);
             updatePatternList();
+        } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
+            // From LX
+            
+            // Get normalized values and forward to TouchOSC.
+            String pName = oscInAddressSplit[oscInAddressSplit.length - 1];
+            String touchOscAddress = LXOscToTouchOsc.get(oscAddress);
+            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+            
+            if (p instanceof BooleanParameter) {
+                SendToTouchOSCclients(touchOscAddress, arg0.getInt());    
+            } else if (p instanceof CompoundParameter) {
+                CompoundParameter cp = (CompoundParameter) p;
+                SendToTouchOSCclients(touchOscAddress, cp.getNormalized());
+            } else if (p instanceof DiscreteParameter) {
+                DiscreteParameter dp = (DiscreteParameter) p;
+                SendToTouchOSCclients(touchOscAddress, dp.getNormalized());
+            }
         }
     }
     
