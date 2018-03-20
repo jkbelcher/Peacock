@@ -8,12 +8,6 @@ import heronarts.lx.audio.FourierTransform;
 
 public class RainbowAmplitudePattern extends PeacockPattern {
 
-    public final CompoundParameter hue =
-        new CompoundParameter("Hue", LXColor.h(LXColor.RED), 0, 360).setDescription("Hue");
-
-    public final CompoundParameter brightness =
-        new CompoundParameter("Brightness", 100, 0, 100).setDescription("Brightness");
-
     public final BooleanParameter lrSplit =
         new BooleanParameter("L/R Split", false)
             .setDescription("When ENABLED, left/right audio channels will map only to the pixels from each corresponding side.")
@@ -24,8 +18,6 @@ public class RainbowAmplitudePattern extends PeacockPattern {
     public RainbowAmplitudePattern(LX lx) {
         super(lx);
 
-        addParameter(hue);
-        addParameter(brightness);
         addParameter(lrSplit);
     }
 
