@@ -13,21 +13,22 @@ public class RainbowAmplitudePattern extends PeacockPattern {
             .setDescription("When ENABLED, left/right audio channels will map only to the pixels from each corresponding side.")
             .setMode(BooleanParameter.Mode.TOGGLE);
 
+    public final CompoundParameter bandGate =
+        new CompoundParameter("BandGate", 4.5f, 0f, 8f)
+            .setDescription("Any value below this in FFT bands will effectively be gated");
+
     float colorValue;
 
     public RainbowAmplitudePattern(LX lx) {
         super(lx);
 
         addParameter(lrSplit);
+        addParameter(bandGate);
     }
 
     int buffLength = lx.engine.audio.getInput().left.bufferSize();
     int sampleRate = lx.engine.audio.getInput().left.sampleRate();
     int color;
-
-    // any value below this in FFT bands will effectively be gated
-    float bandGate = 5.0f;
-
 
     FourierTransform fftMix = new FourierTransform(buffLength, sampleRate);
     FourierTransform fftLeft = new FourierTransform(buffLength, sampleRate);
@@ -51,7 +52,7 @@ public class RainbowAmplitudePattern extends PeacockPattern {
             lx.engine.audio.getInput().mix.getSamples(mixSamples);
             fftMix.compute(mixSamples);
             for (int i=0; i < numBands; i++) {
-                mixBandFloats[i] = (fftMix.getBand(i) >= bandGate) ? fftMix.getBand(i) : 0;
+                mixBandFloats[i] = (fftMix.getBand(i) >= bandGate.getValuef()) ? fftMix.getBand(i) : 0;
             }
         } else {
             lx.engine.audio.getInput().left.getSamples(leftSamples);
@@ -59,8 +60,9 @@ public class RainbowAmplitudePattern extends PeacockPattern {
             fftLeft.compute(leftSamples);
             fftRight.compute(rightSamples);
             for (int i=0; i < numBands; i++) {
-                leftBandFloats[i] = (fftLeft.getBand(i) >= bandGate) ? fftLeft.getBand(i) : 0;
-                rightBandFloats[i] = (fftRight.getBand(i) >= bandGate) ? fftRight.getBand(i) : 0;
+                leftBandFloats[i] = (fftLeft.getBand(i) >= bandGate.getValuef()) ? fftLeft.getBand(i) : 0;
+
+                rightBandFloats[i] = (fftRight.getBand(i) >= bandGate.getValuef()) ? fftRight.getBand(i) : 0;
             }
         }
 
