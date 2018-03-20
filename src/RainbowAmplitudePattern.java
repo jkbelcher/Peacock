@@ -31,9 +31,10 @@ public class RainbowAmplitudePattern extends PeacockPattern {
 
     int buffLength = lx.engine.audio.getInput().left.bufferSize();
     int sampleRate = lx.engine.audio.getInput().left.sampleRate();
+    int color;
 
     // any value below this in FFT bands will effectively be gated
-    float bandGate = 8.0f;
+    float bandGate = 5.0f;
 
 
     FourierTransform fftMix = new FourierTransform(buffLength, sampleRate);
@@ -79,19 +80,17 @@ public class RainbowAmplitudePattern extends PeacockPattern {
                 currentSample = (tp.p.x < 0) ? leftBandFloats : rightBandFloats;
             }
             if (tp.feather == 0) {
-                int color = LXColor.hsb(colorValue, 100, currentSample[(30 - tp.params.rung) % numBands] * 80.0);
-                colors[tp.p.index] = color;
+                color = LXColor.hsb(colorValue, 100, currentSample[(30 - tp.params.rung) % numBands] * 100.0);
             } else if (tp.feather == 6) {
-                // bass frequency
-                int color = LXColor.hsb(colorValue, 100, currentSample[0] * 80.0);
-                colors[tp.p.index] = color;
+                color = LXColor.hsb(colorValue, 100, currentSample[0] * 100.0);
             } else if (tp.feather > 6) {
-                int color = LXColor.hsb( colorValue, 100, currentSample[tp.feather - 7] * 80.0);
-                colors[tp.p.index] = color;
+                color = LXColor.hsb( colorValue, 100, currentSample[tp.feather - 7] * 100.0);
             } else if (tp.feather < 6) {
-                int color = LXColor.hsb( colorValue, 100, currentSample[7 - tp.feather] * 80.0);
-                colors[tp.p.index] = color;
+                color = LXColor.hsb( colorValue, 100, currentSample[7 - tp.feather] * 100.0);
+            } else {
+                continue;
             }
+            colors[tp.p.index] = color;
         }
     }
 }
