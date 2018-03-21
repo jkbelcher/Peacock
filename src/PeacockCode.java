@@ -26,7 +26,7 @@ import processing.event.KeyEvent;
 public class PeacockCode extends PApplet implements LXOscListener {
 
     // Enable OSC?
-    public final static boolean OSC_ENABLED = false;
+    public final static boolean OSC_ENABLED = true;
     
     // From TouchOSC to LX (outgoing port in TouchOSC)
     public final static int TouchOscInPort = 8081;
@@ -328,9 +328,10 @@ public class PeacockCode extends PApplet implements LXOscListener {
             
             //Type
             if (p instanceof BooleanParameter) {
+                PApplet.println(p.getLabel());
                 //Label
-                SendToTouchOSCclients("/paramlabel"+pIndex+"bool", p.getLabel());
-                SendToTouchOSCclients("/paramlabel"+pIndex+"bool/visible", 1);
+                SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool/visible", 1);
 
                 int boolStatus = ((BooleanParameter) p).getValueb() ? 1 : 0;
                 SendToTouchOSCclients("/paramcontrol"+pIndexBool+"bool", boolStatus);
@@ -390,6 +391,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             try {
                 // Transmit to TouchOscOutIp:TouchOSCoutPort
                 lx.engine.osc.transmitter(TouchOscOutIp, TouchOscOutPort).send(oscMsg);
+                PApplet.println(msg);
             } catch (IOException e) {
                 e.printStackTrace();
             }
