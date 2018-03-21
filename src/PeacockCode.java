@@ -25,25 +25,36 @@ import processing.event.KeyEvent;
 
 public class PeacockCode extends PApplet implements LXOscListener {
 
+    // Enable OSC?
+    public final static boolean OSC_ENABLED = false;
+    
+    // From TouchOSC to LX (outgoing port in TouchOSC)
+    public final static int TouchOscInPort = 8081;
+    
+    // From LX to TouchOSC (incoming port and local IP address in TouchOSC)
+    public final static int TouchOscOutPort = 8082;
+    public final static String TouchOscOutIp = "192.168.1.215";
+    
+ 
+    // Hashmaps for bi-directional OSC routing
+    HashMap<String, String> TouchOscToLXOsc = new HashMap<>();
+    HashMap<String, String> LXOscToTouchOsc = new HashMap<>();
+
+    // TouchOSC variables
+    long lastOscHeartbeat = System.currentTimeMillis();
+    boolean oscSendLock = false;
+    private final OscMessage oscMsg = new OscMessage("");
+
+
     // Base unit is inches
     public final static float INCHES = 1;
     public final static float FEET = 12*INCHES;
 
     public static PeacockCode applet;
 
-    // Hashmaps for bi-directional OSC routing
-    HashMap<String, String> TouchOscToLXOsc = new HashMap<>();
-    HashMap<String, String> LXOscToTouchOsc = new HashMap<>();
-    
-    // TouchOSC variables
-    long lastOscHeartbeat = System.currentTimeMillis();
-    boolean oscSendLock = false;
-    
     // Top-level, we have a model and an LXStudio instance
     PeacockModel model;
     LXStudio lx;
-
-    private final OscMessage oscMsg = new OscMessage("");
 
     //For "help" mode which helps define mapped/unmapped pixels
     private boolean isHelpMode = false;
@@ -178,77 +189,86 @@ public class PeacockCode extends PApplet implements LXOscListener {
             lx.engine.getChannel(0).goNext();
             lx.engine.audio.enabled.setValue(true);
             lx.engine.audio.meter.gain.setValue(18);
-            lx.engine.osc.transmitActive.setValue(true);
-            try {
-                lx.engine.osc.receiver(8000).addListener(this);
-                lx.engine.osc.receiver(3131).addListener(this);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
 
+            if (OSC_ENABLED) {
+                // Enable OSC transmit and receive.
+                lx.engine.osc.transmitActive.setValue(true);
+                try {
+                    // Listen for TouchOSC messages on TouchOscInPort
+                    lx.engine.osc.receiver(TouchOscInPort).addListener(this);
+
+                    // Listen for LX OSC messages on port 3131 (lx default)
+                    lx.engine.osc.receiver(3131).addListener(this);
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         
-        lx.engine.getChannel(0).addListener(new Listener() {
+        if (OSC_ENABLED) {
+            lx.engine.getChannel(0).addListener(new Listener() {
 
-            @Override
-            public void effectAdded(LXBus arg0, LXEffect arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void effectAdded(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void effectMoved(LXBus arg0, LXEffect arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void effectMoved(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void effectRemoved(LXBus arg0, LXEffect arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void effectRemoved(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void indexChanged(LXChannel arg0) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void indexChanged(LXChannel arg0) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void patternAdded(LXChannel arg0, LXPattern arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void patternAdded(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void patternDidChange(LXChannel channel, LXPattern pattern) {
-                patternChanged(channel, pattern);                
-            }
+                @Override
+                public void patternDidChange(LXChannel channel, LXPattern pattern) {
+                    patternChanged(channel, pattern);
+                }
 
-            @Override
-            public void patternMoved(LXChannel arg0, LXPattern arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void patternMoved(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void patternRemoved(LXChannel arg0, LXPattern arg1) {
-                // TODO Auto-generated method stub
-                
-            }
+                @Override
+                public void patternRemoved(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
 
-            @Override
-            public void patternWillChange(LXChannel arg0, LXPattern arg1, LXPattern arg2) {
-                // TODO Auto-generated method stub
-                
-            }            
-        });
+                @Override
+                public void patternWillChange(LXChannel arg0, LXPattern arg1, LXPattern arg2) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            });
         
-        updatePatternList();
-        
-        // Just to get TouchOSC up-to-date. There's probably a much better way.
-        lx.engine.getChannel(0).goNext();
-        lx.engine.getChannel(0).goPrev();    
+            updatePatternList();
+            
+            // Just to get TouchOSC up-to-date. There's probably a better way.
+            lx.engine.getChannel(0).goNext();
+            lx.engine.getChannel(0).goPrev();
+
+        }
     }
     
     public void patternChanged(LXChannel channel, LXPattern pattern) {
@@ -257,7 +277,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
     }
     
     public void updatePatternList() {
-        // Update the TouchOSC pattern selection list 
+        // Update the TouchOSC pattern selection list
         for (int ptToggleIndex = 1; ptToggleIndex <= 13; ptToggleIndex++)
         {
             if (ptToggleIndex > lx.engine.getChannel(0).getPatterns().size() - 1) {
@@ -269,7 +289,6 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 } else {
                     SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 0);
                 }
-                
                 SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 1);
                 SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 1);
             }
@@ -325,7 +344,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
                 SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
 
-                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((CompoundParameter) p).getNormalized());                
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((CompoundParameter) p).getNormalized());
                 SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
                 TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
                 LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
@@ -334,18 +353,16 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 //Label
                 SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
                 SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
-                
-                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((DiscreteParameter) p).getNormalized());                
+
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((DiscreteParameter) p).getNormalized());
                 SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
                 TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
                 LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
-                pIndexFader++;               
+                pIndexFader++;
             }
-
-            
         }
     }
-    
+
     public void SendToTouchOSCclients(String address, String val) {
         oscMsg.clearArguments();
         oscMsg.setAddressPattern(address);
@@ -371,27 +388,27 @@ public class PeacockCode extends PApplet implements LXOscListener {
         if (!oscSendLock) {
             oscSendLock = true;
             try {
-                lx.engine.osc.transmitter("192.168.1.215", 8080).send(oscMsg);
-        
+                // Transmit to TouchOscOutIp:TouchOSCoutPort
+                lx.engine.osc.transmitter(TouchOscOutIp, TouchOscOutPort).send(oscMsg);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         oscSendLock = false;
         }
     }
- 
+
     @Override
     public void oscMessage(OscMessage arg0) {
         String oscAddress = arg0.getAddressPattern().toString();
         String[] oscInAddressSplit = oscAddress.split("/");
-        
-        // From TouchOSC...
-        if (TouchOscToLXOsc.containsKey(oscAddress)) {            
+
+        // From TouchOSC to LX...
+        if (TouchOscToLXOsc.containsKey(oscAddress)) {
             // Set values on corresponding LX parameters.
             String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
             String pName = addressSplit[addressSplit.length - 1];
             LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
-            
+            PApplet.println(pName);
             if (p instanceof BooleanParameter) {
                 ((BooleanParameter) p).setValue(arg0.getBoolean());
             } else if (p instanceof CompoundParameter) {
@@ -413,15 +430,15 @@ public class PeacockCode extends PApplet implements LXOscListener {
             lx.engine.getChannel(0).goIndex(patternIndex);
             updatePatternList();
         } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
-            // From LX
-            
+            // From LX to TouchOSC...
+
             // Get normalized values and forward to TouchOSC.
             String pName = oscInAddressSplit[oscInAddressSplit.length - 1];
             String touchOscAddress = LXOscToTouchOsc.get(oscAddress);
             LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
-            
+
             if (p instanceof BooleanParameter) {
-                SendToTouchOSCclients(touchOscAddress, arg0.getInt());    
+                SendToTouchOSCclients(touchOscAddress, arg0.getInt());
             } else if (p instanceof CompoundParameter) {
                 CompoundParameter cp = (CompoundParameter) p;
                 SendToTouchOSCclients(touchOscAddress, cp.getNormalized());
@@ -431,16 +448,18 @@ public class PeacockCode extends PApplet implements LXOscListener {
             }
         }
     }
-    
+
     public void draw(){
         // Empty placeholder... LX handles everything for us!
-        
-        // Heartbeat to touchOSC in case a packet gets dropped
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastOscHeartbeat > 1000.0) {
-            updatePatternControls(lx.engine.getChannel(0), lx.engine.getChannel(0).getActivePattern());
-            updatePatternList();
-            lastOscHeartbeat = currentTime;
+
+        if (OSC_ENABLED) {
+            // Heartbeat to touchOSC in case a packet gets dropped
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastOscHeartbeat > 1000.0) {
+                updatePatternControls(lx.engine.getChannel(0), lx.engine.getChannel(0).getActivePattern());
+                updatePatternList();
+                lastOscHeartbeat = currentTime;
+            }
         }
     }
 
