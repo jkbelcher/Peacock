@@ -49,8 +49,6 @@ public class PeacockModel extends LXModel {
     //Head Eye pixels
     //TO-DO: Add [head] eye pixels here.  They will load from a different .csv file    
        
-    public Boolean isInitialized=false;
-
     public PeacockModel(LXFixture[] allFixtures, List<PeacockFixture> allPeacockFixtures, List<PeacockController> controllers, List<TailPixel> tailPixels) {
         super(allFixtures);
 
@@ -181,7 +179,7 @@ public class PeacockModel extends LXModel {
         this.eyes.tailPixels.sort((p1,p2) -> p2.getPosition() - p1.getPosition());
         this.eyes.copyIndicesToChildren().calculateNormalsByIndex();
         
-        this.feathersLR.tailPixels.sort((p1,p2) -> p1.getFeather() == p2.getFeather() ? p2.getPosition() - p1.getPosition() : p1.getFeather() - p2.getFeather());
+        this.feathersLR.tailPixels.sort((p1,p2) -> p1.getFeather() == p2.getFeather() ? p1.getPosition() - p2.getPosition() : p1.getFeather() - p2.getFeather());
         this.feathersLR.copyIndicesToChildren().calculateNormalsByIndex();
 
         this.panelsLR.tailPixels.sort((p1,p2) -> p1.getPanel() == p2.getPanel() ? Float.compare(p1.getPoint().r, p2.getPoint().r) : p1.getPanel() - p2.getPanel());

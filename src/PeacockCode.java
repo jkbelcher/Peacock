@@ -83,8 +83,10 @@ public class PeacockCode extends PApplet implements LXOscListener {
         // Create the model, which describes where our light points are
         println("Loading config from file...");
         try {
-            model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/bigboi.csv");  //Big Peacock
-            //model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/bestXandYsV3.csv");  //Small Peacock
+            // ****************************************************
+            // TO CHANGE PEACOCKS UNCOMMENT THE CORRECT LINE BELOW:
+            model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/big_peacock.csv");  //Big Peacock
+            //model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/small_peacock.csv");  //Small Peacock
             PApplet.println("Loaded"
                     ,model.controllers.size() + " controllers,"
                     ,model.allPeacockFixtures.size() + " fixtures,"
@@ -115,6 +117,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 lx.registerPattern(HorizontalSquaresPattern.class);
                 lx.registerPattern(RainbowAmplitudePattern.class);
                 lx.registerPattern(PulsePattern.class);
+                lx.registerPattern(ColorMappablePattern.class);                
                 
                 //Add demo patterns to browser
                 lx.registerPattern(DemoNormalCollectionPattern.class);
@@ -168,46 +171,42 @@ public class PeacockCode extends PApplet implements LXOscListener {
         //Use multi-threading for network output
         //lx.engine.output.mode.setValue(LXOutput.Mode.RAW);
         lx.engine.isNetworkMultithreaded.setValue(true);
-        lx.engine.framesPerSecond.setValue(100);
+        lx.engine.framesPerSecond.setValue(40);
         
         model.computeNormalsPeacock();
 
-        if (!model.isInitialized) {
-            model.isInitialized = true;
-
-            //For development, initialize to desired pattern.
-            lx.engine.getChannel(0)
-                .addPattern(new RainbowShiftPattern(lx))
-                .addPattern(new DashesPattern(lx))
-                .addPattern(new VUMeterPattern(lx))
-                .addPattern(new StrobePattern(lx))
-                .addPattern(new RisingSquaresPattern(lx))
-                .addPattern(new HorizontalSquaresPattern(lx))
-                .addPattern(new AudioPeacockPattern(lx))
-                .addPattern(new SolidColorPeacockPattern(lx))
-                .addPattern(new RainbowAmplitudePattern(lx))
-                .addPattern(new PulsePattern(lx))
-                .focusedPattern.setValue(1);
-            lx.engine.getChannel(0).goNext();
-            lx.engine.audio.enabled.setValue(true);
-            lx.engine.audio.meter.gain.setValue(18);
-
-            if (OSC_ENABLED) {
-                // Enable OSC transmit and receive.
-                lx.engine.osc.transmitActive.setValue(true);
-                try {
-                    // Listen for TouchOSC messages on TouchOscInPort
-                    lx.engine.osc.receiver(TouchOscInPort).addListener(this);
-
-                    // Listen for LX OSC messages on port 3131 (lx default)
-                    lx.engine.osc.receiver(3131).addListener(this);
-                } catch (SocketException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        /* Comment out for production.  This interferes with file open/save
+        //For development, initialize to desired pattern.
+        lx.engine.getChannel(0)
+            .addPattern(new RainbowShiftPattern(lx))
+            .addPattern(new DashesPattern(lx))
+            .addPattern(new VUMeterPattern(lx))
+            .addPattern(new StrobePattern(lx))
+            .addPattern(new RisingSquaresPattern(lx))
+            .addPattern(new HorizontalSquaresPattern(lx))
+            .addPattern(new AudioPeacockPattern(lx))
+            .addPattern(new SolidColorPeacockPattern(lx))
+            .addPattern(new RainbowAmplitudePattern(lx))
+            .addPattern(new PulsePattern(lx))
+            .focusedPattern.setValue(1);
+        lx.engine.getChannel(0).goNext();
+        lx.engine.audio.enabled.setValue(true);
+        lx.engine.audio.meter.gain.setValue(18);
+        */
         
         if (OSC_ENABLED) {
+            // Enable OSC transmit and receive.
+            lx.engine.osc.transmitActive.setValue(true);
+            try {
+                // Listen for TouchOSC messages on TouchOscInPort
+                lx.engine.osc.receiver(TouchOscInPort).addListener(this);
+
+                // Listen for LX OSC messages on port 3131 (lx default)
+                lx.engine.osc.receiver(3131).addListener(this);
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            
             lx.engine.getChannel(0).addListener(new Listener() {
 
                 @Override
