@@ -102,7 +102,6 @@ public class RisingSquaresPattern extends PeacockPattern {
         int numSquares = this.numSquares.getValuei();
         
         List<Square> expiredSquares = new ArrayList<Square>();
-        List<Square> newSquares = new ArrayList<Square>();
 
         // Foreach square: adjust current position.  Create new square if it's beyond max position.
         for (Square s : this.squares) {

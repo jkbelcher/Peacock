@@ -117,7 +117,8 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 lx.registerPattern(HorizontalSquaresPattern.class);
                 lx.registerPattern(RainbowAmplitudePattern.class);
                 lx.registerPattern(PulsePattern.class);
-                lx.registerPattern(ColorMappablePattern.class);                
+                lx.registerPattern(ColorMappablePattern.class);
+                lx.registerPattern(BubblesPattern.class);
                 
                 //Add demo patterns to browser
                 //lx.registerPattern(DemoSpiralIDPattern.class);
