@@ -273,7 +273,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
     }
     
     public void patternChanged(LXChannel channel, LXPattern pattern) {
-        PApplet.println("New Pattern selected: " + pattern.getLabel());
+        //PApplet.println("New Pattern selected: " + pattern.getLabel());
         updatePatternControls(channel, pattern);
     }
     
@@ -329,7 +329,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             
             //Type
             if (p instanceof BooleanParameter) {
-                PApplet.println(p.getLabel());
+                //PApplet.println(p.getLabel());
                 //Label
                 SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool", p.getLabel());
                 SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool/visible", 1);
@@ -392,7 +392,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             try {
                 // Transmit to TouchOscOutIp:TouchOSCoutPort
                 lx.engine.osc.transmitter(TouchOscOutIp, TouchOscOutPort).send(oscMsg);
-                PApplet.println(msg);
+                //PApplet.println(msg);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -411,7 +411,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
             String pName = addressSplit[addressSplit.length - 1];
             LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
-            PApplet.println(pName);
+            //PApplet.println(pName);
             if (p instanceof BooleanParameter) {
                 ((BooleanParameter) p).setValue(arg0.getBoolean());
             } else if (p instanceof CompoundParameter) {
