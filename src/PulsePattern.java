@@ -21,6 +21,11 @@ public class PulsePattern extends PeacockPattern {
         addParameter(speed);
         addParameter(maxBrightness);
     }
+    
+    public void setRandomParameters() {
+        randomizeParameter(this.speed);
+        randomizeParameter(this.maxBrightness);
+    }
 
     @Override
     public void run(double deltaMs) {
