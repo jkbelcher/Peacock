@@ -114,6 +114,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 lx.registerPattern(RisingSquaresPattern.class);
                 lx.registerPattern(HorizontalSquaresPattern.class);
                 lx.registerPattern(RainbowAmplitudePattern.class);
+                lx.registerPattern(PulsePattern.class);
                 
                 //Add demo patterns to browser
                 lx.registerPattern(DemoNormalCollectionPattern.class);
@@ -185,6 +186,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 .addPattern(new AudioPeacockPattern(lx))
                 .addPattern(new SolidColorPeacockPattern(lx))
                 .addPattern(new RainbowAmplitudePattern(lx))
+                .addPattern(new PulsePattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
             lx.engine.audio.enabled.setValue(true);
