@@ -120,11 +120,11 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 lx.registerPattern(ColorMappablePattern.class);                
                 
                 //Add demo patterns to browser
-                lx.registerPattern(DemoNormalCollectionPattern.class);
-                lx.registerPattern(DemoChannelPattern.class);
-                lx.registerPattern(DemoSpiralIDPattern.class);
-                lx.registerPattern(DemoNormalPanelsLRPattern.class);
-                lx.registerPattern(DemoNormalFeathersLRPattern.class);
+                //lx.registerPattern(DemoSpiralIDPattern.class);
+                //lx.registerPattern(DemoNormalCollectionPattern.class);
+                //lx.registerPattern(DemoChannelPattern.class);
+                //lx.registerPattern(DemoNormalPanelsLRPattern.class);
+                //lx.registerPattern(DemoNormalFeathersLRPattern.class);
                 
                 //Add stock Effects to browser
                 lx.registerEffect(heronarts.lx.effect.BlurEffect.class);
