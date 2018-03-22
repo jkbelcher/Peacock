@@ -6,18 +6,8 @@ import heronarts.lx.audio.LXAudioComponent;
 import heronarts.lx.audio.FourierTransform;
 
 public class AudioPeacockPattern extends PeacockPattern {
-
-    public final CompoundParameter hue =
-        new CompoundParameter("Hue", LXColor.h(LXColor.RED), 0, 360).setDescription("Hue");
-
-    public final CompoundParameter brightness =
-        new CompoundParameter("Brightness", 100, 0, 100).setDescription("Brightness");
-
     public AudioPeacockPattern(LX lx) {
         super(lx);
-
-        addParameter(hue);
-        addParameter(brightness);
     }
 
     int buffLength = lx.engine.audio.getInput().left.bufferSize();

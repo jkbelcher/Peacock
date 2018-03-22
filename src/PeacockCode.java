@@ -1,16 +1,50 @@
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
-import heronarts.lx.color.LXColor;
+import heronarts.lx.LXBus;
+import heronarts.lx.LXChannel;
+import heronarts.lx.LXChannel.Listener;
+import heronarts.lx.LXEffect;
+import heronarts.lx.LXPattern;
+import heronarts.lx.osc.LXOscListener;
+import heronarts.lx.osc.OscMessage;
 import heronarts.lx.output.LXDatagramOutput;
 import heronarts.lx.output.StreamingACNDatagram;
+import heronarts.lx.parameter.BooleanParameter;
+import heronarts.lx.parameter.CompoundParameter;
+import heronarts.lx.parameter.DiscreteParameter;
+import heronarts.lx.parameter.LXParameter;
 import heronarts.p3lx.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 
-public class PeacockCode extends PApplet {
+
+public class PeacockCode extends PApplet implements LXOscListener {
+
+    // Enable OSC?
+    public final static boolean OSC_ENABLED = true;
+    
+    // From TouchOSC to LX (outgoing port in TouchOSC)
+    public final static int TouchOscInPort = 8081;
+    
+    // From LX to TouchOSC (incoming port and local IP address in TouchOSC)
+    public final static int TouchOscOutPort = 8082;
+    public final static String TouchOscOutIp = "192.168.1.215";
+    
+ 
+    // Hashmaps for bi-directional OSC routing
+    HashMap<String, String> TouchOscToLXOsc = new HashMap<>();
+    HashMap<String, String> LXOscToTouchOsc = new HashMap<>();
+
+    // TouchOSC variables
+    long lastOscHeartbeat = System.currentTimeMillis();
+    boolean oscSendLock = false;
+    private final OscMessage oscMsg = new OscMessage("");
+
 
     // Base unit is inches
     public final static float INCHES = 1;
@@ -153,14 +187,282 @@ public class PeacockCode extends PApplet {
                 .addPattern(new RainbowAmplitudePattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
-
             lx.engine.audio.enabled.setValue(true);
             lx.engine.audio.meter.gain.setValue(18);
+
+            if (OSC_ENABLED) {
+                // Enable OSC transmit and receive.
+                lx.engine.osc.transmitActive.setValue(true);
+                try {
+                    // Listen for TouchOSC messages on TouchOscInPort
+                    lx.engine.osc.receiver(TouchOscInPort).addListener(this);
+
+                    // Listen for LX OSC messages on port 3131 (lx default)
+                    lx.engine.osc.receiver(3131).addListener(this);
+                } catch (SocketException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        if (OSC_ENABLED) {
+            lx.engine.getChannel(0).addListener(new Listener() {
+
+                @Override
+                public void effectAdded(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void effectMoved(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void effectRemoved(LXBus arg0, LXEffect arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void indexChanged(LXChannel arg0) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void patternAdded(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void patternDidChange(LXChannel channel, LXPattern pattern) {
+                    patternChanged(channel, pattern);
+                }
+
+                @Override
+                public void patternMoved(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void patternRemoved(LXChannel arg0, LXPattern arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
+
+                @Override
+                public void patternWillChange(LXChannel arg0, LXPattern arg1, LXPattern arg2) {
+                    // TODO Auto-generated method stub
+                    
+                }
+            });
+        
+            updatePatternList();
+            
+            // Just to get TouchOSC up-to-date. There's probably a better way.
+            lx.engine.getChannel(0).goNext();
+            lx.engine.getChannel(0).goPrev();
+
+        }
+    }
+    
+    public void patternChanged(LXChannel channel, LXPattern pattern) {
+        PApplet.println("New Pattern selected: " + pattern.getLabel());
+        updatePatternControls(channel, pattern);
+    }
+    
+    public void updatePatternList() {
+        // Update the TouchOSC pattern selection list
+        for (int ptToggleIndex = 1; ptToggleIndex <= 13; ptToggleIndex++)
+        {
+            if (ptToggleIndex > lx.engine.getChannel(0).getPatterns().size() - 1) {
+                SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 0);
+                SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 0);
+            } else {
+                if (ptToggleIndex == lx.engine.getChannel(0).getActivePatternIndex()) {
+                    SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 1);
+                } else {
+                    SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 0);
+                }
+                SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 1);
+                SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 1);
+            }
+        }
+    }
+    
+    public void updatePatternControls(LXChannel channel, LXPattern pattern) {
+        // Update touchOSC clients with current pattern parameters/values
+        SendToTouchOSCclients("/patternname", pattern.getLabel());
+        
+        // Clear OSC address hashmaps
+        TouchOscToLXOsc.clear();
+        LXOscToTouchOsc.clear();
+        
+        for (LXPattern p: lx.engine.getChannel(0).getPatterns()) {
+            if (p.getIndex() > 0) {
+                SendToTouchOSCclients("/patternlist/patternlabel"+p.getIndex(), p.getLabel());
+            }
+        }
+        
+        //Hide all parameter controls, in case there are fewer in this pattern than the previous pattern.
+        for (int pIndex = 1; pIndex < 8; pIndex++)
+        {
+            SendToTouchOSCclients("/paramlabel"+pIndex+"bool", "UNUSED");
+            SendToTouchOSCclients("/paramlabel"+pIndex+"bool/visible", 0);
+            SendToTouchOSCclients("/paramlabel"+pIndex+"fader", "UNUSED");
+            SendToTouchOSCclients("/paramlabel"+pIndex+"fader/visible", 0);
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"bool/visible", 0);
+            SendToTouchOSCclients("/paramcontrol"+pIndex+"fader/visible", 0);
+        }
+        
+        //Set labels and type for this pattern's parameters
+        int pIndex = 1;
+        int pIndexBool = 1;
+        int pIndexFader = 1;
+        for (LXParameter p : pattern.getParameters()) {
+            
+            //Type
+            if (p instanceof BooleanParameter) {
+                PApplet.println(p.getLabel());
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexBool+"bool/visible", 1);
+
+                int boolStatus = ((BooleanParameter) p).getValueb() ? 1 : 0;
+                SendToTouchOSCclients("/paramcontrol"+pIndexBool+"bool", boolStatus);
+                SendToTouchOSCclients("/paramcontrol"+pIndexBool+"bool/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexBool+"bool", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexBool+"bool");
+                pIndexBool++;
+
+            } else if (p instanceof CompoundParameter) {
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
+
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((CompoundParameter) p).getNormalized());
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
+                pIndexFader++;
+            } else if (p instanceof DiscreteParameter) {
+                //Label
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader", p.getLabel());
+                SendToTouchOSCclients("/paramlabel"+pIndexFader+"fader/visible", 1);
+
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader", ((DiscreteParameter) p).getNormalized());
+                SendToTouchOSCclients("/paramcontrol"+pIndexFader+"fader/visible", 1);
+                TouchOscToLXOsc.put("/paramcontrol"+pIndexFader+"fader", pattern.getOscAddress().toString()+"/"+p.getPath());
+                LXOscToTouchOsc.put(pattern.getOscAddress().toString()+"/"+p.getPath(), "/paramcontrol"+pIndexFader+"fader");
+                pIndexFader++;
+            }
+        }
+    }
+
+    public void SendToTouchOSCclients(String address, String val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
+    }
+
+    public void SendToTouchOSCclients(String address, double val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
+    }
+
+    public void SendToTouchOSCclients(String address, int val) {
+        oscMsg.clearArguments();
+        oscMsg.setAddressPattern(address);
+        oscMsg.add(val);
+        sendMsg(oscMsg);
+    }
+
+    public void sendMsg(OscMessage msg) {
+        if (!oscSendLock) {
+            oscSendLock = true;
+            try {
+                // Transmit to TouchOscOutIp:TouchOSCoutPort
+                lx.engine.osc.transmitter(TouchOscOutIp, TouchOscOutPort).send(oscMsg);
+                PApplet.println(msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        oscSendLock = false;
+        }
+    }
+
+    @Override
+    public void oscMessage(OscMessage arg0) {
+        String oscAddress = arg0.getAddressPattern().toString();
+        String[] oscInAddressSplit = oscAddress.split("/");
+
+        // From TouchOSC to LX...
+        if (TouchOscToLXOsc.containsKey(oscAddress)) {
+            // Set values on corresponding LX parameters.
+            String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
+            String pName = addressSplit[addressSplit.length - 1];
+            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+            PApplet.println(pName);
+            if (p instanceof BooleanParameter) {
+                ((BooleanParameter) p).setValue(arg0.getBoolean());
+            } else if (p instanceof CompoundParameter) {
+                CompoundParameter cp = (CompoundParameter) p;
+                cp.setNormalized(arg0.getDouble());
+            } else if (p instanceof DiscreteParameter) {
+                DiscreteParameter dp = (DiscreteParameter) p;
+                dp.setNormalized(arg0.getDouble());
+            }
+        } else if (oscAddress.equals("/1/prevpattern") && arg0.getBoolean()) {
+            // Switch to previous pattern.
+            lx.engine.getChannel(0).goPrev();
+        } else if (oscAddress.equals("/1/nextpattern") && arg0.getBoolean()) {
+            // Switch to next pattern.
+            lx.engine.getChannel(0).goNext();
+        } else if (oscAddress.contains("/patternlist/patterntoggle")) {
+            // Switch to selected pattern.
+            int patternIndex = Integer.parseInt(oscInAddressSplit[3]);
+            lx.engine.getChannel(0).goIndex(patternIndex);
+            updatePatternList();
+        } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
+            // From LX to TouchOSC...
+
+            // Get normalized values and forward to TouchOSC.
+            String pName = oscInAddressSplit[oscInAddressSplit.length - 1];
+            String touchOscAddress = LXOscToTouchOsc.get(oscAddress);
+            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+
+            if (p instanceof BooleanParameter) {
+                SendToTouchOSCclients(touchOscAddress, arg0.getInt());
+            } else if (p instanceof CompoundParameter) {
+                CompoundParameter cp = (CompoundParameter) p;
+                SendToTouchOSCclients(touchOscAddress, cp.getNormalized());
+            } else if (p instanceof DiscreteParameter) {
+                DiscreteParameter dp = (DiscreteParameter) p;
+                SendToTouchOSCclients(touchOscAddress, dp.getNormalized());
+            }
         }
     }
 
     public void draw(){
         // Empty placeholder... LX handles everything for us!
+
+        if (OSC_ENABLED) {
+            // Heartbeat to touchOSC in case a packet gets dropped
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastOscHeartbeat > 1000.0) {
+                updatePatternControls(lx.engine.getChannel(0), lx.engine.getChannel(0).getActivePattern());
+                updatePatternList();
+                lastOscHeartbeat = currentTime;
+            }
+        }
     }
 
     public void keyEvent(KeyEvent keyEvent) {
