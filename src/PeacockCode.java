@@ -26,7 +26,7 @@ import processing.event.KeyEvent;
 public class PeacockCode extends PApplet implements LXOscListener {
 
     // Enable OSC?
-    public final static boolean OSC_ENABLED = true;
+    public final static boolean OSC_ENABLED = false;
     
     // From TouchOSC to LX (outgoing port in TouchOSC)
     public final static int TouchOscInPort = 8081;
@@ -125,6 +125,11 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 lx.registerPattern(DemoSpiralIDPattern.class);
                 lx.registerPattern(DemoNormalPanelsLRPattern.class);
                 lx.registerPattern(DemoNormalFeathersLRPattern.class);
+                
+                //Add stock Effects to browser
+                lx.registerEffect(heronarts.lx.effect.BlurEffect.class);
+                lx.registerEffect(heronarts.lx.effect.DesaturationEffect.class);
+                lx.registerEffect(heronarts.lx.effect.StrobeEffect.class);                
 
                 //Cast the model to access model-specific properties from within this overridden initialize() function.
                 PeacockModel m = (PeacockModel)model;
@@ -171,7 +176,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
         //Use multi-threading for network output
         //lx.engine.output.mode.setValue(LXOutput.Mode.RAW);
         lx.engine.isNetworkMultithreaded.setValue(true);
-        lx.engine.framesPerSecond.setValue(40);
+        lx.engine.framesPerSecond.setValue(60.1);
         
         model.computeNormalsPeacock();
 
