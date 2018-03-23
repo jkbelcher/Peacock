@@ -81,6 +81,7 @@ public class PeacockCode extends PApplet {
                 lx.registerPattern(HorizontalSquaresPattern.class);
                 lx.registerPattern(RainbowAmplitudePattern.class);
                 lx.registerPattern(PulsePattern.class);
+                lx.registerPattern(SweepingRainbowPattern.class);
                 
                 //Add demo patterns to browser
                 lx.registerPattern(DemoNormalCollectionPattern.class);
@@ -153,6 +154,7 @@ public class PeacockCode extends PApplet {
                 .addPattern(new SolidColorPeacockPattern(lx))
                 .addPattern(new RainbowAmplitudePattern(lx))
                 .addPattern(new PulsePattern(lx))
+                .addPattern(new SweepingRainbowPattern(lx))
                 .focusedPattern.setValue(1);
             lx.engine.getChannel(0).goNext();
 
