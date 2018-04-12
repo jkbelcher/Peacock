@@ -35,6 +35,6 @@ git clone https://github.com/jkbelcher/Peacock
 
 File > Open Projects from Filesystem
 
-Set the Import Source to the local folder containing the project (ex: C:/Users/username/eclipse-workspace/Peacock)
+Set the Import Source to the local folder containing the project (ex: C:/Users/username/eclipseworkspace/Peacock)
 
 Click [Finish]
