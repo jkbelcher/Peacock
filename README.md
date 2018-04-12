@@ -19,12 +19,14 @@ https://www.thecolossalcollective.com/
 
 Install and enable EditorConfig.  Instructions will vary depending on your IDE.
 
+For Eclipse users, simply drag the Install icon from this page to your running Eclipse instance:
+
 https://marketplace.eclipse.org/content/editorconfig-eclipse
 
 
 ## Pull the latest code
 
-cd C:/Users/username/eclipse-workspace
+cd C:/Users/username/eclipseworkspace
 
 git clone https://github.com/jkbelcher/Peacock
 
@@ -35,4 +37,4 @@ File > Open Projects from Filesystem
 
 Set the Import Source to the local folder containing the project (ex: C:/Users/username/eclipse-workspace/Peacock)
 
-[Finish]
+Click [Finish]
