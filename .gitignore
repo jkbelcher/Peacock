@@ -1,5 +1,4 @@
 ### Eclipse ###
-
 .metadata
 bin/
 tmp/
@@ -11,15 +10,6 @@ local.properties
 .settings/
 .loadpath
 .recommenders
-
-### Eclipse Patch ###
-# Eclipse Core		
-.project
-
-# JDT-specific (Eclipse Java Development Tools)		
-.classpath
-
-# End of https://www.gitignore.io/api/eclipse
 
 #Borrowed from Tenere
 .DS_Store
