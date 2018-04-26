@@ -8,7 +8,9 @@ import java.util.HashMap;
 import heronarts.lx.LXBus;
 import heronarts.lx.LXChannel;
 import heronarts.lx.LXChannel.Listener;
+import heronarts.lx.LXChannelBus;
 import heronarts.lx.LXEffect;
+import heronarts.lx.LXGroup;
 import heronarts.lx.LXPattern;
 import heronarts.lx.osc.LXOscListener;
 import heronarts.lx.osc.OscMessage;
@@ -18,7 +20,7 @@ import heronarts.lx.parameter.BooleanParameter;
 import heronarts.lx.parameter.CompoundParameter;
 import heronarts.lx.parameter.DiscreteParameter;
 import heronarts.lx.parameter.LXParameter;
-import heronarts.p3lx.LXStudio;
+import heronarts.lx.studio.LXStudio;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 
@@ -73,6 +75,76 @@ public class PeacockCode extends PApplet implements LXOscListener {
         }
         */
     }
+    
+    public void initialize(LXStudio lx, LXStudio.UI ui) {
+        // Add custom LXComponents or LXOutput objects to the engine here,
+        // before the UI is constructed
+        
+        //Make patterns available in the browser
+        lx.registerPattern(SolidColorPeacockPattern.class);
+        lx.registerPattern(DashesPattern.class);
+        lx.registerPattern(RainbowShiftPattern.class);
+        lx.registerPattern(VUMeterPattern.class);
+        lx.registerPattern(StrobePattern.class);
+        lx.registerPattern(RisingSquaresPattern.class);
+        lx.registerPattern(HorizontalSquaresPattern.class);
+        lx.registerPattern(RainbowAmplitudePattern.class);
+        lx.registerPattern(PulsePattern.class);
+        lx.registerPattern(ColorMappablePattern.class);
+        lx.registerPattern(BubblesPattern.class);
+        
+        //Add demo patterns to browser
+        //lx.registerPattern(DemoSpiralIDPattern.class);
+        //lx.registerPattern(DemoNormalCollectionPattern.class);
+        //lx.registerPattern(DemoChannelPattern.class);
+        //lx.registerPattern(DemoNormalPanelsLRPattern.class);
+        //lx.registerPattern(DemoNormalFeathersLRPattern.class);
+        
+        //Add stock Effects to browser
+        lx.registerEffect(heronarts.lx.effect.BlurEffect.class);
+        lx.registerEffect(heronarts.lx.effect.DesaturationEffect.class);
+        lx.registerEffect(heronarts.lx.effect.StrobeEffect.class);                
+
+        //Cast the model to access model-specific properties from within this overridden initialize() function.
+        PeacockModel m = (PeacockModel)model;
+        
+        try {
+            //Create a UDP datagram for each output universe.
+            //Currently these are 1:1 with controller channels.
+            for (PeacockFixture fixture : m.allPeacockFixtures) {
+                int universe = fixture.channel;
+                if (universe > 0) {
+                    int[] indicesForDatagram = fixture.getPointIndicesForOutput();                   
+                    StreamingACNDatagram2 datagram = (StreamingACNDatagram2) new StreamingACNDatagram2(universe, indicesForDatagram)
+                        .setAddress(fixture.controller.params.ipAddress)
+                        .setPort(fixture.controller.params.port);
+                    datagrams.add(datagram);
+                }
+            }    
+
+            //Create a UDP LXDatagramOutput to own these packets
+            LXDatagramOutput output = new LXDatagramOutput(lx);
+            for (StreamingACNDatagram2 dg : datagrams) {
+                output.addDatagram(dg);
+            }
+            
+            lx.addOutput(output);     //Comment out for development
+            
+        } catch (UnknownHostException e) {
+            println("Unknown Host Exception while constructing UDP output: " + e);
+            e.printStackTrace();
+        } catch (SocketException e) {
+            println("Socket Exception while constructing UDP output: " + e);
+            e.printStackTrace();
+        }
+    }
+
+    public void onUIReady(LXStudio lx, LXStudio.UI ui) {
+        // The UI is now ready, can add custom UI components if desired
+        ui.preview.addComponent(new UIWalls(model));
+        //ui.leftPane.engine.setVisible(true);
+    }
+
 
     public void setup(){
         PeacockCode.applet = this;
@@ -101,78 +173,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
         // Create the P3LX engine
         // Third parameter=true starts in Multi-threaded mode
-        lx = new LXStudio(this, model, true)  {
-            @Override
-            protected void initialize(LXStudio lx, LXStudio.UI ui) {
-                // Add custom LXComponents or LXOutput objects to the engine here,
-                // before the UI is constructed
-                
-                //Make patterns available in the browser
-                lx.registerPattern(SolidColorPeacockPattern.class);
-                lx.registerPattern(DashesPattern.class);
-                lx.registerPattern(RainbowShiftPattern.class);
-                lx.registerPattern(VUMeterPattern.class);
-                lx.registerPattern(StrobePattern.class);
-                lx.registerPattern(RisingSquaresPattern.class);
-                lx.registerPattern(HorizontalSquaresPattern.class);
-                lx.registerPattern(RainbowAmplitudePattern.class);
-                lx.registerPattern(PulsePattern.class);
-                lx.registerPattern(ColorMappablePattern.class);
-                lx.registerPattern(BubblesPattern.class);
-                
-                //Add demo patterns to browser
-                //lx.registerPattern(DemoSpiralIDPattern.class);
-                //lx.registerPattern(DemoNormalCollectionPattern.class);
-                //lx.registerPattern(DemoChannelPattern.class);
-                //lx.registerPattern(DemoNormalPanelsLRPattern.class);
-                //lx.registerPattern(DemoNormalFeathersLRPattern.class);
-                
-                //Add stock Effects to browser
-                lx.registerEffect(heronarts.lx.effect.BlurEffect.class);
-                lx.registerEffect(heronarts.lx.effect.DesaturationEffect.class);
-                lx.registerEffect(heronarts.lx.effect.StrobeEffect.class);                
-
-                //Cast the model to access model-specific properties from within this overridden initialize() function.
-                PeacockModel m = (PeacockModel)model;
-                
-                try {
-                    //Create a UDP datagram for each output universe.
-                    //Currently these are 1:1 with controller channels.
-                    for (PeacockFixture fixture : m.allPeacockFixtures) {
-                        int universe = fixture.channel;
-                        if (universe > 0) {
-                            int[] indicesForDatagram = fixture.getPointIndicesForOutput();                   
-                            StreamingACNDatagram2 datagram = (StreamingACNDatagram2) new StreamingACNDatagram2(universe, indicesForDatagram)
-                                .setAddress(fixture.controller.params.ipAddress)
-                                .setPort(fixture.controller.params.port);
-                            datagrams.add(datagram);
-                        }
-                    }    
-
-                    //Create a UDP LXDatagramOutput to own these packets
-                    LXDatagramOutput output = new LXDatagramOutput(lx);
-                    for (StreamingACNDatagram2 dg : datagrams) {
-                        output.addDatagram(dg);
-                    }
-                    
-                    this.addOutput(output);		//Comment out for development
-                    
-                } catch (UnknownHostException e) {
-                    println("Unknown Host Exception while constructing UDP output: " + e);
-                    e.printStackTrace();
-                } catch (SocketException e) {
-                    println("Socket Exception while constructing UDP output: " + e);
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            protected void onUIReady(LXStudio lx, LXStudio.UI ui) {
-                // The UI is now ready, can add custom UI components if desired
-                ui.preview.addComponent(new UIWalls(model));
-                ui.leftPane.engine.setVisible(true);
-            }
-        };
+        lx = new LXStudio(this, model, true);
 
         //Use multi-threading for network output
         //lx.engine.output.mode.setValue(LXOutput.Mode.RAW);
@@ -234,7 +235,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 }
 
                 @Override
-                public void indexChanged(LXChannel arg0) {
+                public void indexChanged(LXChannelBus arg0) {
                     // TODO Auto-generated method stub
                     
                 }
@@ -267,13 +268,19 @@ public class PeacockCode extends PApplet implements LXOscListener {
                     // TODO Auto-generated method stub
                     
                 }
+
+                @Override
+                public void groupChanged(LXChannel arg0, LXGroup arg1) {
+                    // TODO Auto-generated method stub
+                    
+                }
             });
         
             updatePatternList();
             
             // Just to get TouchOSC up-to-date. There's probably a better way.
-            lx.engine.getChannel(0).goNext();
-            lx.engine.getChannel(0).goPrev();
+            ((LXChannel)lx.engine.getChannel(0)).goNext();
+            ((LXChannel)lx.engine.getChannel(0)).goPrev();
 
         }
     }
@@ -287,11 +294,11 @@ public class PeacockCode extends PApplet implements LXOscListener {
         // Update the TouchOSC pattern selection list
         for (int ptToggleIndex = 1; ptToggleIndex <= 13; ptToggleIndex++)
         {
-            if (ptToggleIndex > lx.engine.getChannel(0).getPatterns().size() - 1) {
+            if (ptToggleIndex > ((LXChannel)lx.engine.getChannel(0)).getPatterns().size() - 1) {
                 SendToTouchOSCclients("/patternlist/patternlabel"+ptToggleIndex+"/visible", 0);
                 SendToTouchOSCclients("/patternlist/patterntoggle/"+ptToggleIndex+"/visible", 0);
             } else {
-                if (ptToggleIndex == lx.engine.getChannel(0).getActivePatternIndex()) {
+                if (ptToggleIndex == ((LXChannel)lx.engine.getChannel(0)).getActivePatternIndex()) {
                     SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 1);
                 } else {
                     SendToTouchOSCclients("/patternlist/patterntoggle"+ptToggleIndex, 0);
@@ -310,7 +317,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
         TouchOscToLXOsc.clear();
         LXOscToTouchOsc.clear();
         
-        for (LXPattern p: lx.engine.getChannel(0).getPatterns()) {
+        for (LXPattern p: ((LXChannel)lx.engine.getChannel(0)).getPatterns()) {
             if (p.getIndex() > 0) {
                 SendToTouchOSCclients("/patternlist/patternlabel"+p.getIndex(), p.getLabel());
             }
@@ -416,7 +423,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             // Set values on corresponding LX parameters.
             String[] addressSplit = TouchOscToLXOsc.get(oscAddress).split("/");
             String pName = addressSplit[addressSplit.length - 1];
-            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+            LXParameter p = ((LXChannel)lx.engine.getChannel(0)).getActivePattern().getParameter(pName);
             //PApplet.println(pName);
             if (p instanceof BooleanParameter) {
                 ((BooleanParameter) p).setValue(arg0.getBoolean());
@@ -429,14 +436,14 @@ public class PeacockCode extends PApplet implements LXOscListener {
             }
         } else if (oscAddress.equals("/1/prevpattern") && arg0.getBoolean()) {
             // Switch to previous pattern.
-            lx.engine.getChannel(0).goPrev();
+            ((LXChannel)lx.engine.getChannel(0)).goPrev();
         } else if (oscAddress.equals("/1/nextpattern") && arg0.getBoolean()) {
             // Switch to next pattern.
-            lx.engine.getChannel(0).goNext();
+            ((LXChannel)lx.engine.getChannel(0)).goNext();
         } else if (oscAddress.contains("/patternlist/patterntoggle")) {
             // Switch to selected pattern.
             int patternIndex = Integer.parseInt(oscInAddressSplit[3]);
-            lx.engine.getChannel(0).goIndex(patternIndex);
+            ((LXChannel)lx.engine.getChannel(0)).goIndex(patternIndex);
             updatePatternList();
         } else if (LXOscToTouchOsc.containsKey(oscAddress)) {
             // From LX to TouchOSC...
@@ -444,7 +451,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             // Get normalized values and forward to TouchOSC.
             String pName = oscInAddressSplit[oscInAddressSplit.length - 1];
             String touchOscAddress = LXOscToTouchOsc.get(oscAddress);
-            LXParameter p = lx.engine.getChannel(0).getActivePattern().getParameter(pName);
+            LXParameter p = ((LXChannel)lx.engine.getChannel(0)).getActivePattern().getParameter(pName);
 
             if (p instanceof BooleanParameter) {
                 SendToTouchOSCclients(touchOscAddress, arg0.getInt());
@@ -465,7 +472,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
             // Heartbeat to touchOSC in case a packet gets dropped
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastOscHeartbeat > 1000.0) {
-                updatePatternControls(lx.engine.getChannel(0), lx.engine.getChannel(0).getActivePattern());
+                updatePatternControls((LXChannel)lx.engine.getChannel(0), ((LXChannel)lx.engine.getChannel(0)).getActivePattern());
                 updatePatternList();
                 lastOscHeartbeat = currentTime;
             }
@@ -488,13 +495,14 @@ public class PeacockCode extends PApplet implements LXOscListener {
                     if (keyEvent.isControlDown() || keyEvent.isMetaDown()) {
                         setHelpModeOn();
                     }
-                    break;
+                    break;                    
                     //Ctrl+J for help mode Off
                 case java.awt.event.KeyEvent.VK_J:
                     if (keyEvent.isControlDown() || keyEvent.isMetaDown()) {
                         setHelpModeOff();
                     }
                     break;
+                    
             }
         }
     }
