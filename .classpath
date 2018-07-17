@@ -21,6 +21,7 @@
 	<classpathentry kind="lib" path="libraries/processing/jogl-all-natives-macosx-universal.jar"/>
 	<classpathentry kind="lib" path="libraries/processing/jogl-all-natives-windows-amd64.jar"/>
 	<classpathentry kind="lib" path="libraries/processing/jogl-all-natives-windows-i586.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Justin/eclipseworkspace/Peacock/libraries/LXStudio.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Justin/eclipseworkspace/JouleCode/libaries/LXStudio.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Justin/eclipseworkspace/JouleCode/libaries/P3LX.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

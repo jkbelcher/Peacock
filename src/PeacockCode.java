@@ -128,7 +128,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 output.addDatagram(dg);
             }
             
-            lx.addOutput(output);     //Comment out for development
+            //lx.addOutput(output);     //Comment out for development
             
         } catch (UnknownHostException e) {
             println("Unknown Host Exception while constructing UDP output: " + e);
@@ -157,8 +157,8 @@ public class PeacockCode extends PApplet implements LXOscListener {
         try {
             // ****************************************************
             // TO CHANGE PEACOCKS UNCOMMENT THE CORRECT LINE BELOW:
-            model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/big_peacock.csv");  //Big Peacock
-            //model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/small_peacock.csv");  //Small Peacock
+            //model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/big_peacock.csv");  //Big Peacock
+            model = PeacockModel.LoadConfigurationFromFile("./config/controllers.csv", "./config/small_peacock.csv");  //Small Peacock
             PApplet.println("Loaded"
                     ,model.controllers.size() + " controllers,"
                     ,model.allPeacockFixtures.size() + " fixtures,"
@@ -182,9 +182,10 @@ public class PeacockCode extends PApplet implements LXOscListener {
         
         model.computeNormalsPeacock();
 
-        /* Comment out for production.  This interferes with file open/save
+        //Comment out for production.  This interferes with file open/save
         //For development, initialize to desired pattern.
-        lx.engine.getChannel(0)
+        ((LXChannel)lx.engine.getChannel(0))
+            .addPattern(new RainbowAmplitudePattern(lx))
             .addPattern(new RainbowShiftPattern(lx))
             .addPattern(new DashesPattern(lx))
             .addPattern(new VUMeterPattern(lx))
@@ -193,13 +194,12 @@ public class PeacockCode extends PApplet implements LXOscListener {
             .addPattern(new HorizontalSquaresPattern(lx))
             .addPattern(new AudioPeacockPattern(lx))
             .addPattern(new SolidColorPeacockPattern(lx))
-            .addPattern(new RainbowAmplitudePattern(lx))
             .addPattern(new PulsePattern(lx))
             .focusedPattern.setValue(1);
-        lx.engine.getChannel(0).goNext();
+        ((LXChannel)lx.engine.getChannel(0)).goNext();
         lx.engine.audio.enabled.setValue(true);
         lx.engine.audio.meter.gain.setValue(18);
-        */
+        
         
         if (OSC_ENABLED) {
             // Enable OSC transmit and receive.
