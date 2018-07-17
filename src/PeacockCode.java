@@ -60,7 +60,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
     //For "help" mode which helps define mapped/unmapped pixels
     private boolean isHelpMode = false;
-    public static final List<StreamingACNDatagram2> datagrams = new ArrayList<StreamingACNDatagram2>();
+    public static final List<StreamingACNDatagram> datagrams = new ArrayList<StreamingACNDatagram>();
 
     public static void main(String[] args) {
         //		PApplet.main("PeacockCode");
@@ -101,8 +101,6 @@ public class PeacockCode extends PApplet implements LXOscListener {
         //lx.registerPattern(DemoNormalFeathersLRPattern.class);
         
         //Add stock Effects to browser
-        lx.registerEffect(heronarts.lx.effect.BlurEffect.class);
-        lx.registerEffect(heronarts.lx.effect.DesaturationEffect.class);
         lx.registerEffect(heronarts.lx.effect.StrobeEffect.class);                
 
         //Cast the model to access model-specific properties from within this overridden initialize() function.
@@ -115,7 +113,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
                 int universe = fixture.channel;
                 if (universe > 0) {
                     int[] indicesForDatagram = fixture.getPointIndicesForOutput();                   
-                    StreamingACNDatagram2 datagram = (StreamingACNDatagram2) new StreamingACNDatagram2(universe, indicesForDatagram)
+                    StreamingACNDatagram datagram = (StreamingACNDatagram) new StreamingACNDatagram(universe, indicesForDatagram)
                         .setAddress(fixture.controller.params.ipAddress)
                         .setPort(fixture.controller.params.port);
                     datagrams.add(datagram);
@@ -124,7 +122,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
             //Create a UDP LXDatagramOutput to own these packets
             LXDatagramOutput output = new LXDatagramOutput(lx);
-            for (StreamingACNDatagram2 dg : datagrams) {
+            for (StreamingACNDatagram dg : datagrams) {
                 output.addDatagram(dg);
             }
             
@@ -184,6 +182,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
 
         //Comment out for production.  This interferes with file open/save
         //For development, initialize to desired pattern.
+        /*
         ((LXChannel)lx.engine.getChannel(0))
             .addPattern(new RainbowAmplitudePattern(lx))
             .addPattern(new RainbowShiftPattern(lx))
@@ -199,7 +198,7 @@ public class PeacockCode extends PApplet implements LXOscListener {
         ((LXChannel)lx.engine.getChannel(0)).goNext();
         lx.engine.audio.enabled.setValue(true);
         lx.engine.audio.meter.gain.setValue(18);
-        
+        */
         
         if (OSC_ENABLED) {
             // Enable OSC transmit and receive.
